@@ -5,16 +5,8 @@
 // latest 3; writing.html shows all of them.
 // ─────────────────────────────────────────────
 
-const ILL = {};
-
-function inlineIllus(svgKey, caption, note, rotClass) {
-  return `<div class="inline-illus ${rotClass||'illus-r-n1'}">
-    <div class="photo-print">
-      ${ILL[svgKey]}
-      <span class="illus-cap">${caption}</span>
-      ${note ? `<span class="illus-note">${note}</span>` : ''}
-  </div>`;
-}
+// Note: ILL object and inlineIllus are defined in writing.html
+// articles.js only needs the articles array
 
 const articles = [
   {
