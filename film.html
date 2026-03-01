@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>影像 · tutududu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:    #eeeae0;
+  --paper: #faf6ed;
+  --ink:   #1b1710;
+  --ink2:  #5a5045;
+  --rust:  #b8592a;
+  --blue:  #4e7a96;
+  --sage:  #5f8860;
+  --line:  #7a7268;
+  --film:  #1c1a16;   /* dark film base */
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Lora', Georgia, serif;
+  overflow-x: hidden;
+  min-height:100vh;
+}
+body::after {
+  content:''; position:fixed; inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23g)' opacity='0.038'/%3E%3C/svg%3E");
+  pointer-events:none; z-index:997;
+}
+@keyframes fadeUp  { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn  { from{opacity:0} to{opacity:1} }
+@keyframes scaleIn { from{opacity:0;transform:scale(0.96)} to{opacity:1;transform:scale(1)} }
+@keyframes grain   {
+  0%,100%{transform:translate(0,0)}
+  20%{transform:translate(-1px,1px)}
+  40%{transform:translate(1px,-1px)}
+  60%{transform:translate(-1px,-1px)}
+  80%{transform:translate(1px,1px)}
+}
+
+/* ── HEADER ── */
+header {
+  position:fixed; top:0; left:0; right:0;
+  padding:1.7rem 3.5rem;
+  display:flex; justify-content:space-between; align-items:baseline;
+  z-index:100;
+  background:rgba(238,234,224,0.82);
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+}
+.logo {
+  font-family:'Caveat',cursive; font-weight:700; font-size:2rem;
+  color:var(--ink); transform:rotate(-1deg); display:inline-block;
+  text-decoration:none; position:relative;
+}
+.logo::after {
+  content:''; display:block; width:100%; height:7px; margin-top:-3px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 7'%3E%3Cpath d='M1 4 Q20 1 40 4.5 Q60 8 80 3.5 Q100 0 120 4.5 Q140 8 159 3' stroke='%23b8592a' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat left / 100% 100%;
+}
+nav { display:flex; gap:2.4rem; }
+nav a {
+  font-family:'Lora',serif; font-size:0.8rem; font-weight:500;
+  text-decoration:none; color:var(--ink2); transition:color 0.2s; position:relative;
+}
+nav a:hover, nav a.active { color:var(--rust); }
+nav a::after { content:''; position:absolute; bottom:-3px; left:0; width:0; height:1.5px; background:var(--rust); transition:width 0.3s; }
+nav a:hover::after, nav a.active::after { width:100%; }
+
+/* ── FILMSTRIP HEADER ── */
+.film-header {
+  margin-top: 5.5rem;
+  background: var(--film);
+  padding: 0;
+  position: relative;
+  overflow:hidden;
+  opacity:0; animation:fadeUp 0.5s 0.05s ease forwards;
+}
+
+/* sprocket holes top and bottom */
+.sprockets {
+  display:flex; align-items:center; gap:0; padding:0 8px;
+  height:22px; background:var(--film);
+}
+.sprocket {
+  width:16px; height:12px;
+  border:2px solid #3a3830;
+  border-radius:2px;
+  margin-right:18px;
+  flex-shrink:0;
+  background:var(--bg);
+  opacity:0.7;
+}
+
+/* horizontal scrolling filmstrip */
+.filmstrip-scroll {
+  overflow-x:auto; overflow-y:hidden;
+  scrollbar-width:none;
+  cursor:grab;
+  user-select:none;
+  padding:10px 0;
+  background:var(--film);
+}
+.filmstrip-scroll::-webkit-scrollbar { display:none; }
+.filmstrip-scroll.grabbing { cursor:grabbing; }
+
+.filmstrip-track {
+  display:flex; gap:4px;
+  padding:0 16px;
+  width:max-content;
+}
+
+/* each film frame in the strip */
+.film-frame {
+  flex-shrink:0;
+  width:200px; height:148px;
+  background:#2a2820;
+  position:relative;
+  cursor:pointer;
+  overflow:hidden;
+  transition:opacity 0.2s;
+}
+.film-frame:hover { opacity:0.85; }
+.film-frame svg { width:100%; height:100%; display:block; }
+
+/* frame number label */
+.frame-num {
+  position:absolute; bottom:4px; right:6px;
+  font-family:'Caveat',cursive; font-size:0.65rem;
+  color:#6a6458; opacity:0.7; pointer-events:none;
+}
+
+/* ── MAIN GRID AREA ── */
+.page-body {
+  display:grid;
+  grid-template-columns: 1fr 320px;
+  gap:0;
+  padding:0 4rem 6rem 4rem;
+  padding-top: 3rem;
+}
+
+/* ── ENTRIES FEED (left) ── */
+.entries-feed {
+  padding-right:3rem;
+  border-right:1px solid rgba(28,23,16,0.07);
+  opacity:0; animation:fadeUp 0.5s 0.2s ease forwards;
+}
+
+/* year section header */
+.year-header {
+  display:flex; align-items:center; gap:1.2rem;
+  margin-bottom:2rem; margin-top:0.5rem;
+}
+.year-label {
+  font-family:'Caveat',cursive; font-size:1.6rem; font-weight:700;
+  color:var(--ink); transform:rotate(-0.5deg); display:inline-block;
+}
+.year-line {
+  flex:1; height:1px; background:var(--ink); opacity:0.07;
+}
+
+/* entry card */
+.entry {
+  display:grid;
+  grid-template-columns:200px 1fr;
+  gap:1.6rem;
+  margin-bottom:2.8rem;
+  cursor:pointer;
+  transition:opacity 0.2s;
+}
+.entry:hover { opacity:0.78; }
+
+/* thumbnail — film-style with sprocket holes on sides */
+.entry-thumb {
+  position:relative;
+  flex-shrink:0;
+}
+.entry-thumb-inner {
+  background:#1c1a16;
+  padding:6px 12px;
+  position:relative;
+}
+.thumb-holes-l,
+.thumb-holes-r {
+  position:absolute; top:0; bottom:0;
+  width:10px;
+  background:var(--film);
+  display:flex; flex-direction:column;
+  justify-content:space-evenly; align-items:center;
+  gap:0;
+}
+.thumb-holes-l { left:0; }
+.thumb-holes-r { right:0; }
+.thumb-hole {
+  width:6px; height:5px;
+  background:var(--bg);
+  border-radius:1px;
+  opacity:0.6;
+}
+.thumb-img {
+  width:100%; aspect-ratio:4/3;
+  display:block;
+  background:#2a2820;
+  position:relative;
+  overflow:hidden;
+}
+.thumb-img svg { width:100%; height:100%; }
+
+/* film grain overlay on thumb */
+.thumb-img::after {
+  content:''; position:absolute; inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='150'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='150' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+  pointer-events:none;
+}
+
+/* metadata strip under thumb */
+.thumb-meta {
+  background:#2a2820;
+  padding:3px 12px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.thumb-type {
+  font-family:'Caveat',cursive; font-size:0.62rem; font-weight:500;
+  color:#6a6458; letter-spacing:0.08em; text-transform:uppercase;
+}
+.thumb-dur {
+  font-family:'Caveat',cursive; font-size:0.62rem;
+  color:#6a6458;
+}
+
+/* entry text */
+.entry-text { padding-top:0.2rem; }
+.entry-tag {
+  font-family:'Caveat',cursive; font-size:0.78rem; font-weight:500;
+  color:var(--rust); opacity:0.75; display:block; margin-bottom:0.4rem;
+}
+.entry-title {
+  font-family:'Lora',serif; font-size:1.08rem; font-weight:600;
+  color:var(--ink); line-height:1.38; margin-bottom:0.6rem;
+}
+.entry-date {
+  font-family:'Caveat',cursive; font-size:0.75rem; font-weight:500;
+  color:var(--line); opacity:0.5; display:block; margin-bottom:0.7rem;
+}
+.entry-desc {
+  font-family:'Lora',serif; font-size:0.78rem; font-weight:400;
+  color:var(--ink2); line-height:1.85; opacity:0.65;
+}
+.entry-location {
+  display:inline-flex; align-items:center; gap:0.3rem;
+  font-family:'Caveat',cursive; font-size:0.74rem; font-weight:500;
+  color:var(--line); opacity:0.45; margin-top:0.6rem;
+}
+
+/* ── SIDEBAR (right) ── */
+.info-sidebar {
+  padding-left:2.5rem;
+  padding-top:0;
+  opacity:0; animation:fadeUp 0.5s 0.28s ease forwards;
+}
+
+.sidebar-section {
+  margin-bottom:2.8rem;
+}
+.sidebar-heading {
+  font-family:'Caveat',cursive; font-size:0.7rem; font-weight:700;
+  letter-spacing:0.12em; text-transform:uppercase;
+  color:var(--line); opacity:0.55;
+  margin-bottom:1rem; display:block;
+}
+
+/* gear list */
+.gear-list { list-style:none; }
+.gear-list li {
+  font-family:'Lora',serif; font-size:0.76rem; font-weight:400;
+  color:var(--ink2); line-height:1.6;
+  padding:0.4rem 0;
+  border-bottom:1px solid rgba(28,23,16,0.05);
+  display:flex; justify-content:space-between;
+}
+.gear-list li:last-child { border-bottom:none; }
+.gear-name { color:var(--ink); font-weight:500; }
+.gear-use  { color:var(--line); font-size:0.7rem; opacity:0.6; }
+
+/* stat blocks */
+.stats {
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:1rem;
+}
+.stat-block {
+  background:var(--paper);
+  padding:0.9rem 1rem;
+  clip-path:polygon(0% 0%,100% 0.5%,99.5% 99.5%,100% 100%,0% 100%,0.5% 60%,0% 28%);
+  filter:drop-shadow(1px 2px 5px rgba(28,23,16,0.07));
+}
+.stat-num {
+  font-family:'Caveat',cursive; font-size:1.8rem; font-weight:700;
+  color:var(--ink); line-height:1;
+}
+.stat-label {
+  font-family:'Lora',serif; font-size:0.65rem; font-weight:400;
+  color:var(--line); opacity:0.55; margin-top:0.2rem;
+}
+
+/* note sticky */
+.sidebar-note {
+  background:#faf5e8;
+  border-left:3px solid var(--rust);
+  clip-path:polygon(0% 1%,3% 0%,97% 1%,100% 0%,99% 99%,96% 100%,4% 100%,0% 99%);
+  padding:0.9rem 1.1rem;
+  font-family:'Caveat',cursive; font-size:0.88rem; font-weight:500;
+  color:var(--ink); line-height:1.65;
+  transform:rotate(-0.5deg);
+  filter:drop-shadow(1px 2px 5px rgba(28,23,16,0.07));
+}
+
+/* filter bar */
+.filter-bar {
+  display:flex; gap:0.45rem; flex-wrap:wrap; margin-bottom:2rem;
+}
+.tag-btn {
+  padding:0.28rem 0.72rem;
+  font-family:'Caveat',cursive; font-size:0.82rem; font-weight:500;
+  color:var(--ink2); background:transparent;
+  border:1.5px solid rgba(28,23,16,0.18);
+  border-radius:2px; cursor:pointer;
+  transition:all 0.2s; user-select:none;
+}
+.tag-btn:hover  { border-color:var(--rust); color:var(--rust); }
+.tag-btn.active { background:var(--rust); color:#fff; border-color:var(--rust); }
+
+/* ── LIGHTBOX ── */
+#lightbox {
+  display:none;
+  position:fixed; inset:0;
+  background:rgba(18,16,12,0.94);
+  z-index:500;
+  align-items:center; justify-content:center;
+  animation:fadeIn 0.18s ease;
+}
+#lightbox.open { display:flex; }
+
+.lb-wrap {
+  position:relative;
+  max-width:min(860px,95vw);
+  width:100%;
+  animation:scaleIn 0.2s ease;
+}
+
+/* film-frame border around lightbox */
+.lb-film {
+  background:var(--film);
+  padding:22px 14px 14px;
+  position:relative;
+}
+/* sprocket holes on lightbox */
+.lb-sprockets-top, .lb-sprockets-bottom {
+  display:flex; gap:18px; padding:0 4px;
+  height:18px; align-items:center;
+}
+.lb-sprockets-top { position:absolute; top:2px; left:0; right:0; }
+.lb-sprockets-bottom { position:absolute; bottom:2px; left:0; right:0; }
+.lb-hole {
+  width:14px; height:10px;
+  border:1.5px solid #3a3830;
+  border-radius:1.5px;
+  background:#eeeae0; opacity:0.5;
+  flex-shrink:0;
+}
+
+.lb-media {
+  width:100%;
+  aspect-ratio:16/9;
+  background:#0e0c0a;
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden; position:relative;
+}
+.lb-media svg { width:100%; height:100%; }
+/* grain overlay */
+.lb-media::after {
+  content:''; position:absolute; inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='225'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='225' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  pointer-events:none;
+  animation:grain 0.12s steps(1) infinite;
+}
+
+.lb-caption-bar {
+  background:#0e0c0a;
+  padding:10px 14px;
+  display:flex; justify-content:space-between; align-items:flex-end;
+}
+.lb-title {
+  font-family:'Caveat',cursive; font-size:1.05rem; font-weight:500;
+  color:#d4c8b8; line-height:1.3;
+}
+.lb-meta {
+  font-family:'Caveat',cursive; font-size:0.74rem;
+  color:#6a6458; text-align:right; line-height:1.4;
+}
+
+.lb-close {
+  position:absolute; top:-2.4rem; right:0;
+  background:none; border:none; cursor:pointer;
+  color:#8a8478; font-size:1.2rem; transition:color 0.2s;
+  font-family:'Lora',serif;
+}
+.lb-close:hover { color:#e8dece; }
+
+.lb-nav {
+  position:absolute; top:50%; transform:translateY(-50%);
+  background:rgba(18,16,12,0.6); border:1px solid #3a3830;
+  cursor:pointer; color:#8a8478;
+  font-size:1.5rem; line-height:1; padding:0.6rem 0.8rem;
+  transition:all 0.2s; font-family:'Lora',serif;
+}
+.lb-nav:hover { color:#e8dece; background:rgba(18,16,12,0.9); }
+.lb-prev { left:-3.2rem; }
+.lb-next { right:-3.2rem; }
+
+/* entry hidden by filter */
+.entry.hidden { display:none; }
+
+/* empty state */
+.empty-state {
+  padding:4rem 0; font-family:'Caveat',cursive;
+  font-size:1.1rem; color:var(--line); opacity:0.5;
+}
+
+@media(max-width:960px){
+  .page-body{grid-template-columns:1fr;padding:2rem 1.5rem 4rem;}
+  .entries-feed{padding-right:0;border-right:none;border-bottom:1px solid rgba(28,23,16,0.07);padding-bottom:3rem;margin-bottom:2rem;}
+  .info-sidebar{padding-left:0;}
+  .entry{grid-template-columns:160px 1fr;gap:1.2rem;}
+}
+@media(max-width:600px){
+  header{padding:1.4rem 1.5rem;}
+  .entry{grid-template-columns:1fr;}
+  .lb-prev,.lb-next{display:none;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="tutududu.html">tutududu</a>
+  <nav>
+    <a href="writing.html">文字</a>
+    <a href="film.html" class="active">影像</a>
+    <a href="sound.html">声音</a>
+    <a href="guestbook.html">留言</a>
+  </nav>
+</header>
+
+<!-- FILMSTRIP HEADER -->
+<div class="film-header" id="film-header">
+  <div class="sprockets" id="sprockets-top"></div>
+  <div class="filmstrip-scroll" id="filmstrip-scroll">
+    <div class="filmstrip-track" id="filmstrip-track"></div>
+  </div>
+  <div class="sprockets" id="sprockets-bottom"></div>
+</div>
+
+<!-- MAIN BODY -->
+<div class="page-body">
+
+  <!-- FEED (left) -->
+  <div class="entries-feed">
+    <div class="filter-bar">
+      <button class="tag-btn active" data-tag="all">全部</button>
+      <button class="tag-btn" data-tag="短片">短片</button>
+      <button class="tag-btn" data-tag="记录">记录</button>
+      <button class="tag-btn" data-tag="照片">照片</button>
+    </div>
+    <div id="entries-container"></div>
+  </div>
+
+  <!-- SIDEBAR (right) -->
+  <aside class="info-sidebar">
+
+    <div class="sidebar-section">
+      <span class="sidebar-heading">统计</span>
+      <div class="stats">
+        <div class="stat-block">
+          <div class="stat-num">7</div>
+          <div class="stat-label">影像作品</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-num">43</div>
+          <div class="stat-label">分钟总时长</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-num">3</div>
+          <div class="stat-label">城市</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-num">2024</div>
+          <div class="stat-label">开始记录</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <span class="sidebar-heading">器材</span>
+      <ul class="gear-list">
+        <li><span class="gear-name">Sony ZV-E10</span><span class="gear-use">主力拍摄</span></li>
+        <li><span class="gear-name">iPhone 15</span><span class="gear-use">随手记录</span></li>
+        <li><span class="gear-name">Sigma 16mm f/1.4</span><span class="gear-use">室内 / 人像</span></li>
+        <li><span class="gear-name">Sony 10-20mm</span><span class="gear-use">风景 / 街拍</span></li>
+        <li><span class="gear-name">DaVinci Resolve</span><span class="gear-use">剪辑调色</span></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-note">
+        拍东西不是为了记录"发生了什么"，而是记录"感觉是什么"。<br><br>
+        所以我喜欢拍光、拍窗户、拍人背对着镜头的样子。
+      </div>
+    </div>
+
+  </aside>
+</div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox">
+  <div class="lb-wrap">
+    <button class="lb-close" id="lb-close">✕</button>
+    <button class="lb-nav lb-prev" id="lb-prev">‹</button>
+    <button class="lb-nav lb-next" id="lb-next">›</button>
+    <div class="lb-film">
+      <div class="lb-sprockets-top" id="lb-spr-top"></div>
+      <div class="lb-media" id="lb-media"></div>
+      <div class="lb-caption-bar">
+        <div>
+          <div class="lb-title" id="lb-title"></div>
+        </div>
+        <div class="lb-meta" id="lb-meta"></div>
+      </div>
+      <div class="lb-sprockets-bottom" id="lb-spr-btm"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════
+const entries = [
+  {
+    id:1, tag:'短片', year:2024,
+    title:'窗户里的光',
+    date:'2024.11.08', location:'上海', byline:'by Claude',
+    duration:'4\'32"', type:'VIDEO',
+    desc:'一个关于城市夜晚的短片。我在对面楼数了很久的窗户，然后决定把这件事拍下来。没有对白，只有城市的声音和那些灯。',
+    svg: filmFrame_windows(),
+  },
+  {
+    id:2, tag:'记录', year:2024,
+    title:'火车上的两小时',
+    date:'2024.10.14', location:'沪宁城际', byline:'by Claude',
+    duration:'8\'16"', type:'VIDEO',
+    desc:'从上海到南京的绿皮车厢。我把镜头对着窗外，什么都没说。结果出来的东西比我预期的更好看——也许是因为田里那棵孤树。',
+    svg: filmFrame_train(),
+  },
+  {
+    id:3, tag:'照片', year:2024,
+    title:'凌晨三点',
+    date:'2024.09.22', location:'家', byline:'by Claude',
+    duration:'12 张', type:'PHOTO',
+    desc:'睡不着的时候拍的。抽油烟机的橙色小灯，冷藏室的蓝白色，煮沸的水蒸气。厨房在夜里的样子很陌生，像别人家的厨房。',
+    svg: filmFrame_kitchen_night(),
+  },
+  {
+    id:4, tag:'短片', year:2024,
+    title:'下雨天',
+    date:'2024.09.03', location:'上海', byline:'by Claude',
+    duration:'2\'48"', type:'VIDEO',
+    desc:'下雨天出去拍的。没有什么主题，就是雨落在不同表面上的样子——玻璃、水坑、叶子、行人的伞面。',
+    svg: filmFrame_rain(),
+  },
+  {
+    id:5, tag:'照片', year:2024,
+    title:'夏天的角落',
+    date:'2024.08.17', location:'南京', byline:'by Claude',
+    duration:'24 张', type:'PHOTO',
+    desc:'朋友家附近的一条小巷，夏天的早上七点，光线是那种薄薄的白。我在里面绕了很久，拍下所有让我停住的东西。',
+    svg: filmFrame_alley(),
+  },
+  {
+    id:6, tag:'记录', year:2024,
+    title:'那棵树后来怎样了',
+    date:'2024.07.29', location:'郊区', byline:'by Claude',
+    duration:'3\'05"', type:'VIDEO',
+    desc:'专门回去找了那棵孤树。它还在原地，完全没变。但我这次带着镜头，所以感觉完全不一样——像是终于介绍了两个认识很久的朋友。',
+    svg: filmFrame_tree(),
+  },
+  {
+    id:7, tag:'照片', year:2024,
+    title:'人和光',
+    date:'2024.07.11', location:'咖啡馆', byline:'by Claude',
+    duration:'18 张', type:'PHOTO',
+    desc:'下午三点的咖啡馆，窗户把光切成很多种形状。我没有拍人脸，只拍了光落在手上、桌上、书页上的地方。',
+    svg: filmFrame_cafe(),
+  },
+];
+
+// ═══════════════════════════════════════
+//  PLACEHOLDER SVG FRAMES
+//  — cinematic, dark palette, sketchy
+// ═══════════════════════════════════════
+
+function filmFrame_windows() {
+  return `<svg viewBox="0 0 200 112" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="112" fill="#0e0c0a"/>
+    <rect fill="#161410" width="200" height="112"/>
+    <!-- building silhouettes -->
+    <rect fill="#1a1816" x="0" y="30" width="55" height="82"/>
+    <rect fill="#181614" x="50" y="18" width="70" height="94"/>
+    <rect fill="#1c1a18" x="115" y="25" width="85" height="87"/>
+    <!-- lit windows grid — warm -->
+    <rect fill="#e8c84a" x="8"  y="36" width="9" height="7" rx="1" opacity="0.75"/>
+    <rect fill="#e8c84a" x="20" y="36" width="9" height="7" rx="1" opacity="0.5"/>
+    <rect fill="#e8d870" x="8"  y="50" width="9" height="7" rx="1" opacity="0.9"/>
+    <rect fill="#e8c84a" x="32" y="50" width="9" height="7" rx="1" opacity="0.4"/>
+    <rect fill="#e8c84a" x="20" y="64" width="9" height="7" rx="1" opacity="0.6"/>
+    <rect fill="#e8c84a" x="58" y="24" width="10" height="7" rx="1" opacity="0.65"/>
+    <rect fill="#e8d870" x="72" y="24" width="10" height="7" rx="1" opacity="0.85"/>
+    <rect fill="#e8c84a" x="86" y="24" width="10" height="7" rx="1" opacity="0.45"/>
+    <rect fill="#e8c84a" x="58" y="36" width="10" height="7" rx="1" opacity="0.55"/>
+    <rect fill="#f0e080" x="100" y="36" width="10" height="7" rx="1" opacity="0.7"/>
+    <rect fill="#e8c84a" x="58" y="50" width="10" height="7" rx="1" opacity="0.35"/>
+    <rect fill="#e8c84a" x="86" y="50" width="10" height="7" rx="1" opacity="0.8"/>
+    <rect fill="#e8c84a" x="72" y="64" width="10" height="7" rx="1" opacity="0.5"/>
+    <rect fill="#e8c84a" x="122" y="30" width="11" height="8" rx="1" opacity="0.6"/>
+    <rect fill="#e8d870" x="138" y="30" width="11" height="8" rx="1" opacity="0.8"/>
+    <rect fill="#e8c84a" x="156" y="30" width="11" height="8" rx="1" opacity="0.45"/>
+    <rect fill="#e8c84a" x="172" y="30" width="11" height="8" rx="1" opacity="0.7"/>
+    <rect fill="#f0e080" x="122" y="44" width="11" height="8" rx="1" opacity="0.55"/>
+    <rect fill="#e8c84a" x="156" y="44" width="11" height="8" rx="1" opacity="0.9"/>
+    <rect fill="#e8c84a" x="138" y="58" width="11" height="8" rx="1" opacity="0.4"/>
+    <rect fill="#e8c84a" x="172" y="58" width="11" height="8" rx="1" opacity="0.65"/>
+    <!-- foreground person silhouette -->
+    <ellipse cx="100" cy="112" rx="16" ry="7" fill="#0a0806"/>
+    <rect fill="#0a0806" x="90" y="84" width="20" height="28" rx="6"/>
+    <circle cx="100" cy="78" r="9" fill="#0a0806"/>
+    <!-- subtle vignette -->
+    <radialGradient id="v1" cx="50%" cy="50%" r="70%">
+      <stop offset="60%" stop-color="transparent"/>
+      <stop offset="100%" stop-color="#0a0806" stop-opacity="0.6"/>
+    </radialGradient>
+    <rect width="200" height="112" fill="url(#v1)"/>
+  </svg>`;
+}
+
+function filmFrame_train() {
+  return `<svg viewBox="0 0 200 112" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="112" fill="#b0a898"/>
+    <!-- sky -->
+    <rect fill="#a8aab8" width="200" height="60"/>
+    <!-- overcast sky tones -->
+    <rect fill="#b0b2c0" x="0" y="5" width="200" height="25" rx="12"/>
+    <!-- ground -->
+    <rect fill="#9a9888" x="0" y="60" width="200" height="52"/>
+    <!-- field texture lines -->
+    <line x1="0" y1="72" x2="200" y2="72" stroke="#888078" stroke-width="0.6" opacity="0.4"/>
+    <line x1="0" y1="84" x2="200" y2="84" stroke="#888078" stroke-width="0.6" opacity="0.35"/>
+    <line x1="0" y1="96" x2="200" y2="96" stroke="#888078" stroke-width="0.5" opacity="0.25"/>
+    <!-- lone tree -->
+    <line x1="148" y1="112" x2="148" y2="40" stroke="#5a5040" stroke-width="2"/>
+    <circle cx="148" cy="32" r="14" fill="#6a7858" opacity="0.65"/>
+    <circle cx="140" cy="36" r="9" fill="#60705a" opacity="0.55"/>
+    <circle cx="157" cy="35" r="10" fill="#78886a" opacity="0.5"/>
+    <!-- train window frame -->
+    <rect fill="none" stroke="#4a4030" stroke-width="3" x="2" y="2" width="196" height="108" rx="3"/>
+    <rect fill="none" stroke="#4a4030" stroke-width="1.5" x="5" y="5" width="190" height="102" rx="2"/>
+    <!-- window reflection ghost -->
+    <rect fill="white" x="12" y="12" width="8" height="60" rx="2" opacity="0.04"/>
+    <!-- motion blur lines (speed) -->
+    <line x1="0" y1="68" x2="60" y2="68" stroke="#888078" stroke-width="1.5" opacity="0.3"/>
+    <line x1="0" y1="74" x2="45" y2="74" stroke="#888078" stroke-width="1" opacity="0.2"/>
+    <line x1="0" y1="80" x2="50" y2="80" stroke="#888078" stroke-width="1.2" opacity="0.25"/>
+  </svg>`;
+}
+
+function filmFrame_kitchen_night() {
+  return `<svg viewBox="0 0 200 112" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="112" fill="#12100c"/>
+    <!-- range hood glow -->
+    <radialGradient id="hl1" cx="50%" cy="35%" r="50%">
+      <stop offset="0%" stop-color="#c87820" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="transparent"/>
+    </radialGradient>
+    <rect width="200" height="112" fill="url(#hl1)"/>
+    <!-- range hood shape -->
+    <rect fill="#1e1c18" x="40" y="12" width="120" height="14" rx="2"/>
+    <rect fill="#1a1814" x="55" y="26" width="90" height="5" rx="1"/>
+    <!-- lamp warmth -->
+    <ellipse cx="100" cy="30" rx="28" ry="8" fill="#e8a830" opacity="0.55"/>
+    <!-- counter surface -->
+    <rect fill="#1e1c18" x="0" y="70" width="200" height="42"/>
+    <line x1="0" y1="70" x2="200" y2="70" stroke="#3a3420" stroke-width="0.8" opacity="0.4"/>
+    <!-- stovetop -->
+    <rect fill="#2a2820" x="20" y="72" width="160" height="35" rx="3"/>
+    <!-- burner rings -->
+    <circle fill="none" stroke="#5a4828" stroke-width="1.2" cx="72" cy="87" r="12"/>
+    <circle fill="none" stroke="#5a4828" stroke-width="0.8" cx="72" cy="87" r="7"/>
+    <circle fill="none" stroke="#5a4828" stroke-width="1.2" cx="138" cy="87" r="10"/>
+    <circle fill="none" stroke="#5a4828" stroke-width="0.8" cx="138" cy="87" r="6"/>
+    <!-- steam from pot -->
+    <path d="M68 68 Q70 58 68 48" fill="none" stroke="#7a7060" stroke-width="1.2" stroke-linecap="round" opacity="0.5"/>
+    <path d="M74 66 Q76 56 74 46" fill="none" stroke="#7a7060" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
+    <path d="M80 67 Q82 57 80 47" fill="none" stroke="#7a7060" stroke-width="1.1" stroke-linecap="round" opacity="0.35"/>
+    <!-- pot -->
+    <rect fill="#2e2c28" stroke="#4a4838" stroke-width="1" x="54" y="62" width="36" height="10" rx="2"/>
+    <ellipse cx="72" cy="62" rx="18" ry="4" fill="#2a2820" stroke="#4a4838" stroke-width="1"/>
+    <!-- vignette -->
+    <radialGradient id="v2" cx="50%" cy="50%" r="65%">
+      <stop offset="55%" stop-color="transparent"/>
+      <stop offset="100%" stop-color="#0a0806" stop-opacity="0.7"/>
+    </radialGradient>
+    <rect width="200" height="112" fill="url(#v2)"/>
+  </svg>`;
+}
+
+function filmFrame_rain() {
+  return `<svg viewBox="0 0 200 112" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="112" fill="#282c38"/>
+    <!-- sky -->
+    <rect fill="#20242e" width="200" height="70"/>
+    <!-- storm clouds -->
+    <ellipse cx="60" cy="22" rx="52" ry="22" fill="#2e3240" opacity="0.9"/>
+    <ellipse cx="110" cy="16" rx="58" ry="20" fill="#2a2e3a" opacity="0.95"/>
+    <ellipse cx="170" cy="24" rx="44" ry="18" fill="#2c3040" opacity="0.85"/>
+    <!-- rain streaks — diagonal -->
+    <g stroke="#5a7090" stroke-linecap="round" opacity="0.55">
+      <line x1="14" y1="36" x2="11" y2="54" stroke-width="0.7"/>
+      <line x1="26" y1="30" x2="23" y2="50" stroke-width="0.9"/>
+      <line x1="38" y1="34" x2="35" y2="55" stroke-width="0.7"/>
+      <line x1="50" y1="28" x2="47" y2="50" stroke-width="0.8"/>
+      <line x1="62" y1="32" x2="59" y2="53" stroke-width="0.7"/>
+      <line x1="74" y1="26" x2="71" y2="48" stroke-width="0.9"/>
+      <line x1="86" y1="30" x2="83" y2="52" stroke-width="0.7"/>
+      <line x1="98" y1="34" x2="95" y2="55" stroke-width="0.8"/>
+      <line x1="110" y1="28" x2="107" y2="50" stroke-width="0.7"/>
+      <line x1="122" y1="32" x2="119" y2="54" stroke-width="0.9"/>
+      <line x1="134" y1="26" x2="131" y2="48" stroke-width="0.7"/>
+      <line x1="146" y1="30" x2="143" y2="52" stroke-width="0.8"/>
+      <line x1="158" y1="34" x2="155" y2="55" stroke-width="0.7"/>
+      <line x1="170" y1="28" x2="167" y2="50" stroke-width="0.9"/>
+      <line x1="182" y1="32" x2="179" y2="53" stroke-width="0.7"/>
+      <line x1="194" y1="26" x2="191" y2="48" stroke-width="0.8"/>
+      <line x1="8"  y1="55" x2="5"  y2="76" stroke-width="0.7"/>
+      <line x1="20" y1="52" x2="17" y2="74" stroke-width="0.8"/>
+      <line x1="32" y1="56" x2="29" y2="78" stroke-width="0.7"/>
+      <line x1="44" y1="50" x2="41" y2="72" stroke-width="0.9"/>
+      <line x1="56" y1="54" x2="53" y2="76" stroke-width="0.7"/>
+      <line x1="68" y1="48" x2="65" y2="70" stroke-width="0.8"/>
+      <line x1="80" y1="52" x2="77" y2="74" stroke-width="0.7"/>
+      <line x1="92" y1="56" x2="89" y2="78" stroke-width="0.9"/>
+      <line x1="104" y1="50" x2="101" y2="72" stroke-width="0.7"/>
+      <line x1="116" y1="54" x2="113" y2="76" stroke-width="0.8"/>
+      <line x1="128" y1="48" x2="125" y2="70" stroke-width="0.7"/>
+      <line x1="140" y1="52" x2="137" y2="74" stroke-width="0.9"/>
+      <line x1="152" y1="56" x2="149" y2="78" stroke-width="0.7"/>
+      <line x1="164" y1="50" x2="161" y2="72" stroke-width="0.8"/>
+      <line x1="176" y1="54" x2="173" y2="76" stroke-width="0.7"/>
+      <line x1="188" y1="48" x2="185" y2="70" stroke-width="0.9"/>
+    </g>
+    <!-- wet ground + puddle reflections -->
+    <rect fill="#1e2228" x="0" y="70" width="200" height="42"/>
+    <ellipse cx="50" cy="78" rx="30" ry="7" fill="#283040" opacity="0.7"/>
+    <ellipse cx="148" cy="82" rx="26" ry="6" fill="#283040" opacity="0.65"/>
+    <!-- reflected light in puddle -->
+    <ellipse cx="148" cy="82" rx="10" ry="3" fill="#e8c04a" opacity="0.12"/>
+    <!-- pedestrian umbrellas silhouette -->
+    <path d="M80 70 Q88 58 96 70 Z" fill="#181818"/>
+    <line x1="88" y1="70" x2="88" y2="84" stroke="#181818" stroke-width="1.2"/>
+    <path d="M120 72 Q126 62 132 72 Z" fill="#181818"/>
+    <line x1="126" y1="72" x2="126" y2="84" stroke="#181818" stroke-width="1.2"/>
+  </svg>`;
+}
+
+function filmFrame_alley() {
+  return `<svg viewBox="0 0 200 112" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="112" fill="#c8c4b8"/>
+    <!-- morning haze sky -->
+    <rect fill="#d8d8d0" width="200" height="50"/>
+    <!-- alley walls -->
+    <rect fill="#c0bab0" x="0" y="20" width="60" height="92"/>
+    <rect fill="#b8b2a8" x="140" y="14" width="60" height="98"/>
+    <!-- wall texture — subtle horizontal lines -->
+    <line x1="0" y1="34" x2="60" y2="34" stroke="#a8a29a" stroke-width="0.5" opacity="0.4"/>
+    <line x1="0" y1="48" x2="60" y2="48" stroke="#a8a29a" stroke-width="0.5" opacity="0.35"/>
+    <line x1="0" y1="62" x2="60" y2="62" stroke="#a8a29a" stroke-width="0.5" opacity="0.3"/>
+    <line x1="140" y1="28" x2="200" y2="28" stroke="#a0998e" stroke-width="0.5" opacity="0.4"/>
+    <line x1="140" y1="42" x2="200" y2="42" stroke="#a0998e" stroke-width="0.5" opacity="0.35"/>
+    <!-- alley floor perspective -->
+    <polygon points="60,112 140,112 100,40" fill="#b0aa9e"/>
+    <line x1="60" y1="112" x2="100" y2="40" stroke="#a0988e" stroke-width="0.6" opacity="0.3"/>
+    <line x1="140" y1="112" x2="100" y2="40" stroke="#a0988e" stroke-width="0.6" opacity="0.3"/>
+    <!-- morning light beam from top -->
+    <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="white" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0"/>
+    </linearGradient>
+    <polygon points="75,0 125,0 105,112 95,112" fill="url(#beam)"/>
+    <!-- figure walking away -->
+    <ellipse cx="100" cy="90" rx="8" ry="5" fill="#5a5448" opacity="0.5"/>
+    <rect fill="#5a5448" x="95" y="70" width="10" height="20" rx="4" opacity="0.6"/>
+    <circle cx="100" cy="64" r="5" fill="#5a5448" opacity="0.55"/>
+    <!-- doorways on wall left -->
+    <rect fill="#8a8478" x="10" y="50" width="18" height="30" rx="1" opacity="0.5"/>
+    <rect fill="#9a8e82" x="30" y="55" width="16" height="24" rx="1" opacity="0.4"/>
+    <!-- plant -->
+    <circle fill="#788c68" cx="26" cy="80" r="8" opacity="0.6"/>
+    <line x1="26" y1="88" x2="26" y2="100" stroke="#6a5c48" stroke-width="1.5"/>
+  </svg>`;
+}
+
+function filmFrame_tree() {
+  return `<svg viewBox="0 0 200 112" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="112" fill="#b8b4a8"/>
+    <!-- overcast sky -->
+    <rect fill="#b0b4c0" width="200" height="62"/>
+    <rect fill="#b8bcc8" x="0" y="8" width="200" height="28" rx="15" opacity="0.6"/>
+    <!-- field -->
+    <rect fill="#a4a09a" x="0" y="62" width="200" height="50"/>
+    <line x1="0" y1="74" x2="200" y2="74" stroke="#908c86" stroke-width="0.5" opacity="0.4"/>
+    <line x1="0" y1="86" x2="200" y2="86" stroke="#908c86" stroke-width="0.5" opacity="0.3"/>
+    <line x1="0" y1="98" x2="200" y2="98" stroke="#908c86" stroke-width="0.4" opacity="0.2"/>
+    <!-- THE tree — centre, bigger now, focal point -->
+    <line x1="100" y1="112" x2="100" y2="34" stroke="#5a5040" stroke-width="3.5" stroke-linecap="round"/>
+    <line x1="100" y1="52" x2="76" y2="38" stroke="#5a5040" stroke-width="2.2" stroke-linecap="round"/>
+    <line x1="76" y1="38" x2="62" y2="28" stroke="#5a5040" stroke-width="1.6" stroke-linecap="round"/>
+    <line x1="76" y1="38" x2="70" y2="48" stroke="#5a5040" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="100" y1="44" x2="124" y2="30" stroke="#5a5040" stroke-width="2" stroke-linecap="round"/>
+    <line x1="124" y1="30" x2="136" y2="22" stroke="#5a5040" stroke-width="1.4" stroke-linecap="round"/>
+    <line x1="124" y1="30" x2="130" y2="40" stroke="#5a5040" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="100" y1="60" x2="84" y2="52" stroke="#5a5040" stroke-width="1.4" stroke-linecap="round"/>
+    <!-- foliage sparse -->
+    <circle cx="100" cy="26" r="16" fill="#6a7858" opacity="0.55"/>
+    <circle cx="84" cy="32" r="11" fill="#607050" opacity="0.45"/>
+    <circle cx="116" cy="28" r="12" fill="#788866" opacity="0.45"/>
+    <!-- camera operator shadow (us) -->
+    <ellipse cx="100" cy="108" rx="12" ry="3" fill="#8a8478" opacity="0.25"/>
+    <!-- slight film burn corner -->
+    <radialGradient id="burn" cx="0%" cy="0%" r="40%">
+      <stop offset="0%" stop-color="#e8c060" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="transparent"/>
+    </radialGradient>
+    <rect width="200" height="112" fill="url(#burn)"/>
+  </svg>`;
+}
+
+function filmFrame_cafe() {
+  return `<svg viewBox="0 0 200 112" xmlns="http://www.w3.org/2000/svg">
+    <rect width="200" height="112" fill="#d4cec2"/>
+    <!-- warm afternoon light from window (right side) -->
+    <linearGradient id="cafe_light" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0%" stop-color="#e8c870" stop-opacity="0.45"/>
+      <stop offset="60%" stop-color="#e8c870" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="transparent"/>
+    </linearGradient>
+    <rect width="200" height="112" fill="url(#cafe_light)"/>
+    <!-- window frame right side casting light -->
+    <rect fill="none" stroke="#b8a870" stroke-width="2.5" x="156" y="5" width="38" height="75" rx="2" opacity="0.55"/>
+    <line x1="175" y1="5" x2="175" y2="80" stroke="#b8a870" stroke-width="1.2" opacity="0.4"/>
+    <line x1="156" y1="42" x2="194" y2="42" stroke="#b8a870" stroke-width="1.2" opacity="0.4"/>
+    <!-- table surface -->
+    <rect fill="#c8c0b4" x="0" y="56" width="200" height="56"/>
+    <line x1="0" y1="56" x2="200" y2="56" stroke="#a8a09a" stroke-width="0.8" opacity="0.5"/>
+    <!-- light stripe on table -->
+    <rect fill="#e8c870" x="140" y="56" width="40" height="56" opacity="0.12"/>
+    <!-- coffee cup -->
+    <ellipse cx="80" cy="66" rx="16" ry="5" fill="#9a9088" opacity="0.4"/>
+    <rect fill="#d8d0c8" stroke="#9a9088" stroke-width="1" x="64" y="60" width="32" height="22" rx="3"/>
+    <ellipse cx="80" cy="60" rx="16" ry="4.5" fill="#e8e0d8" stroke="#9a9088" stroke-width="1"/>
+    <!-- coffee surface in cup -->
+    <ellipse cx="80" cy="60" rx="14" ry="3.5" fill="#8a7060"/>
+    <!-- saucer -->
+    <ellipse cx="80" cy="82" rx="20" ry="5" fill="#d0c8c0" stroke="#9a9088" stroke-width="0.8"/>
+    <!-- hand on table (holding book) -->
+    <rect fill="#c0b0a0" x="20" y="72" width="40" height="18" rx="8" opacity="0.7"/>
+    <rect fill="#d4c4b4" x="14" y="68" width="50" height="4" rx="2" opacity="0.5"/>
+    <!-- book pages -->
+    <rect fill="#f0e8d8" x="16" y="70" width="22" height="20" rx="1" opacity="0.6"/>
+    <line x1="27" y1="70" x2="27" y2="90" stroke="#c8c0b0" stroke-width="0.5" opacity="0.6"/>
+    <!-- dust in light beam -->
+    <circle fill="#e8c870" cx="168" cy="30" r="1" opacity="0.4"/>
+    <circle fill="#e8c870" cx="175" cy="20" r="0.8" opacity="0.35"/>
+    <circle fill="#e8c870" cx="162" cy="45" r="1" opacity="0.3"/>
+    <circle fill="#e8c870" cx="180" cy="38" r="0.8" opacity="0.4"/>
+    <!-- vignette -->
+    <radialGradient id="v3" cx="30%" cy="50%" r="70%">
+      <stop offset="55%" stop-color="transparent"/>
+      <stop offset="100%" stop-color="#8a7860" stop-opacity="0.25"/>
+    </radialGradient>
+    <rect width="200" height="112" fill="url(#v3)"/>
+  </svg>`;
+}
+
+// ═══════════════════════════════════════
+//  FILMSTRIP HEADER — draggable
+// ═══════════════════════════════════════
+
+function buildSprockets(containerId, count) {
+  const el = document.getElementById(containerId);
+  for(let i=0;i<count;i++) {
+    const d = document.createElement('div');
+    d.className = 'sprocket';
+    el.appendChild(d);
+  }
+}
+buildSprockets('sprockets-top', 30);
+buildSprockets('sprockets-bottom', 30);
+
+// Filmstrip frames (all entries)
+const track = document.getElementById('filmstrip-track');
+entries.forEach((e,i) => {
+  const f = document.createElement('div');
+  f.className = 'film-frame';
+  f.innerHTML = e.svg + `<span class="frame-num">${String(i+1).padStart(3,'0')}</span>`;
+  f.onclick = () => openLightbox(e.id);
+  track.appendChild(f);
+});
+
+// Drag scroll
+const scroll = document.getElementById('filmstrip-scroll');
+let isDown=false, startX=0, scrollLeft=0;
+scroll.addEventListener('mousedown', e => { isDown=true; scroll.classList.add('grabbing'); startX=e.pageX-scroll.offsetLeft; scrollLeft=scroll.scrollLeft; });
+scroll.addEventListener('mouseleave',() => { isDown=false; scroll.classList.remove('grabbing'); });
+scroll.addEventListener('mouseup',   () => { isDown=false; scroll.classList.remove('grabbing'); });
+scroll.addEventListener('mousemove', e => {
+  if(!isDown) return;
+  e.preventDefault();
+  const x = e.pageX - scroll.offsetLeft;
+  scroll.scrollLeft = scrollLeft - (x - startX) * 1.4;
+});
+
+// ═══════════════════════════════════════
+//  ENTRIES FEED
+// ═══════════════════════════════════════
+
+function renderEntries(tag) {
+  const container = document.getElementById('entries-container');
+  const filtered = tag === 'all' ? entries : entries.filter(e => e.tag === tag);
+
+  if(filtered.length === 0) {
+    container.innerHTML = `<div class="empty-state">这个分类还没有内容</div>`;
+    return;
+  }
+
+  // Group by year
+  const byYear = {};
+  filtered.forEach(e => {
+    if(!byYear[e.year]) byYear[e.year] = [];
+    byYear[e.year].push(e);
+  });
+
+  container.innerHTML = Object.keys(byYear).sort((a,b)=>b-a).map(year => `
+    <div class="year-header">
+      <span class="year-label">${year}</span>
+      <div class="year-line"></div>
+    </div>
+    ${byYear[year].map(e => `
+      <div class="entry" data-id="${e.id}" onclick="openLightbox(${e.id})">
+        <div class="entry-thumb">
+          <div class="entry-thumb-inner">
+            <div class="thumb-holes-l">${Array(4).fill('<div class="thumb-hole"></div>').join('')}</div>
+            <div class="thumb-holes-r">${Array(4).fill('<div class="thumb-hole"></div>').join('')}</div>
+            <div class="thumb-img">${e.svg}</div>
+          </div>
+          <div class="thumb-meta">
+            <span class="thumb-type">${e.type}</span>
+            <span class="thumb-dur">${e.duration}</span>
+          </div>
+        </div>
+        <div class="entry-text">
+          <span class="entry-tag">${e.tag}</span>
+          <h2 class="entry-title">${e.title}</h2>
+          <span class="entry-date">${e.date}</span>
+          <p class="entry-desc">${e.desc}</p>
+          <span class="entry-location">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <circle cx="5" cy="4" r="2" stroke="currentColor" stroke-width="1.2"/>
+              <path d="M5 2 Q5 0 5 0" stroke="none"/>
+              <path d="M2.5 4 Q2.5 7.5 5 9.5 Q7.5 7.5 7.5 4" stroke="currentColor" stroke-width="1.2" fill="none"/>
+            </svg>
+            ${e.location}
+          </span>
+        </div>
+      </div>
+    `).join('')}
+  `).join('');
+}
+
+// ═══════════════════════════════════════
+//  LIGHTBOX
+// ═══════════════════════════════════════
+let lbItems = [...entries];
+let lbIdx = 0;
+
+// Build lightbox sprocket holes
+function buildLbSprockets(id, count) {
+  const el = document.getElementById(id);
+  el.innerHTML = Array(count).fill('<div class="lb-hole"></div>').join('');
+}
+buildLbSprockets('lb-spr-top', 14);
+buildLbSprockets('lb-spr-btm', 14);
+
+function openLightbox(id) {
+  const tag = document.querySelector('.tag-btn.active').dataset.tag;
+  lbItems = tag === 'all' ? entries : entries.filter(e => e.tag === tag);
+  lbIdx = lbItems.findIndex(e => e.id === id);
+  showLb();
+  document.getElementById('lightbox').classList.add('open');
+}
+
+function showLb() {
+  const e = lbItems[lbIdx];
+  document.getElementById('lb-media').innerHTML = e.svg;
+  document.getElementById('lb-title').textContent = e.title;
+  document.getElementById('lb-meta').innerHTML = `${e.date} · ${e.location} · <span style="opacity:1;font-size:0.82em">${e.byline||''}</span><br>${e.type} · ${e.duration}`;
+}
+
+document.getElementById('lb-close').onclick = () => document.getElementById('lightbox').classList.remove('open');
+document.getElementById('lb-prev').onclick  = () => { lbIdx=(lbIdx-1+lbItems.length)%lbItems.length; showLb(); };
+document.getElementById('lb-next').onclick  = () => { lbIdx=(lbIdx+1)%lbItems.length; showLb(); };
+document.getElementById('lightbox').addEventListener('click', e => {
+  if(e.target===document.getElementById('lightbox')) document.getElementById('lightbox').classList.remove('open');
+});
+document.addEventListener('keydown', e => {
+  if(!document.getElementById('lightbox').classList.contains('open')) return;
+  if(e.key==='Escape')      document.getElementById('lightbox').classList.remove('open');
+  if(e.key==='ArrowLeft')   { lbIdx=(lbIdx-1+lbItems.length)%lbItems.length; showLb(); }
+  if(e.key==='ArrowRight')  { lbIdx=(lbIdx+1)%lbItems.length; showLb(); }
+});
+
+// ═══════════════════════════════════════
+//  FILTER
+// ═══════════════════════════════════════
+document.querySelectorAll('.tag-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tag-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    renderEntries(btn.dataset.tag);
+  });
+});
+
+renderEntries('all');
+</script>
+</body>
+</html>

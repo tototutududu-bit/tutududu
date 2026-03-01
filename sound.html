@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>声音 · tutududu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* ── DESIGN INTENT ───────────────────────────────────────
+   Deep warm dark — like a lamp-lit room at 11pm.
+   Background: very dark warm brown, not pure black.
+   Text: soft cream, never harsh white.
+   Accent: a muted amber-gold — candlelight, not neon.
+   Cards: slightly lighter warm panels, like aged paper
+   held up to a dim bulb. Each card rests closed;
+   clicking opens it to reveal the context layer.
+   Audio: SoundCloud embed, deliberately understated.
+   The dominant experience is the WHY, not the player.
+──────────────────────────────────────────────────────── */
+
+:root {
+  /* shared with site */
+  --rust:  #b8592a;
+
+  /* night palette */
+  --night:      #1a1610;   /* page bg */
+  --night-card: #221e18;   /* card bg closed */
+  --night-open: #2a2419;   /* card bg open */
+  --night-edge: #302820;   /* card border */
+  --cream:      #e8e0d0;   /* primary text */
+  --cream2:     #a89880;   /* secondary text */
+  --amber:      #c8982a;   /* accent — candlelight */
+  --amber-dim:  #8a6818;   /* accent dimmed */
+
+  /* nav uses site vars for consistency */
+  --bg:   #eeeae0;
+  --ink:  #1b1710;
+  --ink2: #5a5045;
+  --line: #7a7268;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--night);
+  color: var(--cream);
+  font-family: 'Lora', Georgia, serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* grain texture over everything */
+body::after {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:999;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23g)' opacity='0.055'/%3E%3C/svg%3E");
+}
+
+/* subtle vignette */
+body::before {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:1;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(10,8,6,0.45) 100%);
+}
+
+@keyframes fadeUp   { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn   { from{opacity:0} to{opacity:1} }
+@keyframes waveform {
+  0%,100% { transform: scaleY(0.4); }
+  50%     { transform: scaleY(1);   }
+}
+
+/* ══ HEADER ══════════════════════════════════════════════ */
+header {
+  position: fixed; top:0; left:0; right:0;
+  padding: 1.7rem 3.5rem;
+  display: flex; justify-content:space-between; align-items:baseline;
+  z-index: 200;
+  /* header stays light — bridges the dark page to the logo */
+  background: rgba(26,22,16,0.9);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(200,152,42,0.07);
+}
+.logo {
+  font-family:'Caveat',cursive; font-weight:700; font-size:2rem;
+  color: var(--cream); transform:rotate(-1deg); display:inline-block;
+  text-decoration:none; position:relative;
+}
+.logo::after {
+  content:''; display:block; width:100%; height:7px; margin-top:-3px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 7'%3E%3Cpath d='M1 4 Q20 1 40 4.5 Q60 8 80 3.5 Q100 0 120 4.5 Q140 8 159 3' stroke='%23b8592a' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat left / 100% 100%;
+}
+nav { display:flex; gap:2.4rem; }
+nav a {
+  font-family:'Lora',serif; font-size:0.8rem; font-weight:500;
+  text-decoration:none; color:var(--cream2);
+  transition:color 0.2s; position:relative;
+}
+nav a:hover, nav a.active { color:var(--amber); }
+nav a::after {
+  content:''; position:absolute; bottom:-3px; left:0; width:0;
+  height:1px; background:var(--amber); transition:width 0.3s;
+}
+nav a:hover::after, nav a.active::after { width:100%; }
+
+/* ══ PAGE HERO ═══════════════════════════════════════════ */
+.hero {
+  padding: 9rem 3.5rem 3rem;
+  max-width: 760px;
+  opacity:0; animation: fadeUp 0.6s 0.05s ease forwards;
+  position: relative; z-index: 2;
+}
+.hero-title {
+  font-family:'Caveat',cursive; font-weight:700;
+  font-size: clamp(3rem, 7vw, 5rem);
+  color: var(--cream);
+  display:inline-block; transform:rotate(-1deg);
+  line-height:1; position:relative;
+}
+.hero-title::after {
+  content:''; display:block; height:9px; margin-top:-1px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 9'%3E%3Cpath d='M2 6 Q50 2 100 6 Q150 10 198 5' stroke='%23c8982a' stroke-width='2.2' fill='none' stroke-linecap='round' opacity='0.7'/%3E%3C/svg%3E") no-repeat left / 100% 100%;
+}
+.hero-sub {
+  display:block; margin-top:1.2rem;
+  font-family:'Lora',serif; font-style:italic;
+  font-size:0.92rem; color:var(--cream2); opacity:0.7;
+  line-height:1.7;
+}
+.hero-count {
+  display:inline-block; margin-top:0.8rem;
+  font-family:'Caveat',cursive; font-size:0.8rem;
+  color:var(--amber-dim); opacity:0.6;
+}
+
+/* ══ RECORDINGS LIST ═════════════════════════════════════ */
+.recordings {
+  position: relative; z-index: 2;
+  padding: 0 3.5rem 6rem;
+  max-width: 760px;
+  display: flex; flex-direction:column; gap:0;
+  opacity:0; animation: fadeUp 0.5s 0.25s ease forwards;
+}
+
+/* ── single recording card ── */
+.rec-card {
+  border-top: 1px solid rgba(200,152,42,0.1);
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+.rec-card:last-child { border-bottom: 1px solid rgba(200,152,42,0.1); }
+.rec-card.is-open { border-color: rgba(200,152,42,0.22); }
+
+/* closed state — the "face" of the card */
+.rec-face {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.8rem 0;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  user-select: none;
+}
+.rec-face:hover { opacity: 0.78; }
+
+.rec-left {}
+.rec-num {
+  font-family:'Caveat',cursive; font-size:0.72rem;
+  color:var(--amber-dim); opacity:0.6; display:block;
+  margin-bottom:0.4rem;
+  letter-spacing:0.08em;
+}
+.rec-title {
+  font-family:'Lora',serif; font-size:1.12rem; font-weight:600;
+  color:var(--cream); line-height:1.35;
+}
+.rec-book {
+  display:block; margin-top:0.35rem;
+  font-family:'Lora',serif; font-style:italic;
+  font-size:0.78rem; color:var(--cream2); opacity:0.55;
+}
+.rec-reason {
+  display:block; margin-top:0.55rem;
+  font-family:'Lora',serif; font-size:0.82rem;
+  color:var(--cream2); line-height:1.7; opacity:0.7;
+  max-width:460px;
+}
+
+/* right side: duration + expand toggle */
+.rec-right {
+  display:flex; flex-direction:column;
+  align-items:flex-end; gap:0.6rem; flex-shrink:0;
+}
+.rec-dur {
+  font-family:'Caveat',cursive; font-size:0.8rem;
+  color:var(--cream2); opacity:0.38;
+}
+.rec-toggle {
+  width:28px; height:28px;
+  border:1px solid rgba(200,152,42,0.25); border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  color:var(--amber-dim); transition:all 0.25s;
+  flex-shrink:0;
+}
+.rec-card.is-open .rec-toggle {
+  border-color:rgba(200,152,42,0.5);
+  color:var(--amber);
+  transform:rotate(45deg);
+}
+.rec-toggle svg { display:block; }
+
+/* open/expanded content */
+.rec-body {
+  display: none;
+  padding: 0 0 2rem;
+}
+.rec-card.is-open .rec-body { display:block; }
+
+/* context strip — small metadata */
+.rec-context {
+  display:flex; flex-wrap:wrap; gap:0.9rem;
+  margin-bottom:1.4rem;
+}
+.rec-ctx-item {
+  font-family:'Caveat',cursive; font-size:0.78rem;
+  color:var(--cream2); opacity:0.45;
+  display:flex; align-items:center; gap:0.3rem;
+}
+.rec-ctx-item svg { opacity:0.6; flex-shrink:0; }
+
+/* the audio embed / placeholder */
+.rec-player {
+  background: var(--night-open);
+  border: 1px solid var(--night-edge);
+  border-radius:3px;
+  overflow:hidden;
+}
+/* SoundCloud embed */
+.rec-player iframe {
+  display:block; width:100%; border:none;
+}
+/* placeholder shown when no real URL */
+.rec-player-placeholder {
+  padding:1.2rem 1.4rem;
+  display:flex; align-items:center; gap:1rem;
+}
+.play-btn-fake {
+  width:36px; height:36px; border-radius:50%;
+  border:1.5px solid rgba(200,152,42,0.35);
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; color:var(--amber-dim);
+  transition:all 0.2s; cursor:pointer;
+}
+.play-btn-fake:hover {
+  border-color:var(--amber);
+  color:var(--amber);
+  background:rgba(200,152,42,0.06);
+}
+/* tiny waveform bars */
+.waveform {
+  display:flex; align-items:center; gap:2px;
+  height:24px;
+}
+.waveform span {
+  display:block; width:2px; border-radius:1px;
+  background:var(--amber-dim); opacity:0.4;
+  transform:scaleY(0.4); transform-origin:center;
+}
+/* animate bars when "playing" */
+.rec-card.is-playing .waveform span { opacity:0.65; }
+.rec-card.is-playing .waveform span:nth-child(1)  { animation:waveform 0.8s 0.0s ease-in-out infinite; }
+.rec-card.is-playing .waveform span:nth-child(2)  { animation:waveform 0.8s 0.1s ease-in-out infinite; }
+.rec-card.is-playing .waveform span:nth-child(3)  { animation:waveform 0.8s 0.2s ease-in-out infinite; }
+.rec-card.is-playing .waveform span:nth-child(4)  { animation:waveform 0.8s 0.05s ease-in-out infinite; }
+.rec-card.is-playing .waveform span:nth-child(5)  { animation:waveform 0.8s 0.15s ease-in-out infinite; }
+.rec-card.is-playing .waveform span:nth-child(6)  { animation:waveform 0.8s 0.25s ease-in-out infinite; }
+.rec-card.is-playing .waveform span:nth-child(7)  { animation:waveform 0.8s 0.08s ease-in-out infinite; }
+.rec-card.is-playing .waveform span:nth-child(8)  { animation:waveform 0.8s 0.18s ease-in-out infinite; }
+.rec-card.is-playing .waveform span:nth-child(9)  { animation:waveform 0.8s 0.28s ease-in-out infinite; }
+.rec-card.is-playing .waveform span:nth-child(10) { animation:waveform 0.8s 0.03s ease-in-out infinite; }
+.rec-card.is-playing .waveform span:nth-child(11) { animation:waveform 0.8s 0.13s ease-in-out infinite; }
+.rec-card.is-playing .waveform span:nth-child(12) { animation:waveform 0.8s 0.22s ease-in-out infinite; }
+.rec-card.is-playing .waveform span:nth-child(13) { animation:waveform 0.8s 0.06s ease-in-out infinite; }
+.rec-card.is-playing .waveform span:nth-child(14) { animation:waveform 0.8s 0.16s ease-in-out infinite; }
+.rec-card.is-playing .waveform span:nth-child(15) { animation:waveform 0.8s 0.26s ease-in-out infinite; }
+
+.placeholder-meta {
+  flex:1;
+  display:flex; flex-direction:column; gap:4px;
+}
+.placeholder-title {
+  font-family:'Caveat',cursive; font-size:0.82rem;
+  color:var(--cream2); opacity:0.5;
+}
+.placeholder-note {
+  font-family:'Lora',serif; font-style:italic; font-size:0.7rem;
+  color:var(--cream2); opacity:0.3;
+}
+.placeholder-dur {
+  font-family:'Caveat',cursive; font-size:0.75rem;
+  color:var(--cream2); opacity:0.3; flex-shrink:0;
+  align-self:center;
+}
+
+/* ══ RESPONSIVE ══════════════════════════════════════════ */
+@media(max-width:600px) {
+  header   { padding:1.4rem 1.5rem; }
+  .hero    { padding:8rem 1.5rem 2.5rem; }
+  .recordings { padding:0 1.5rem 5rem; }
+  .rec-reason { max-width:100%; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="tutududu.html">tutududu</a>
+  <nav>
+    <a href="writing.html">文字</a>
+    <a href="film.html">影像</a>
+    <a href="sound.html" class="active">声音</a>
+    <a href="guestbook.html">留言</a>
+  </nav>
+</header>
+
+<!-- ══ HERO ══ -->
+<div class="hero">
+  <h1 class="hero-title">声音</h1>
+  <span class="hero-sub">
+    读出来才知道一句话有多重。<br>
+    有些段落，我读了不止一遍。
+  </span>
+  <span class="hero-count" id="rec-count">— 7 条录音</span>
+</div>
+
+<!-- ══ RECORDINGS ══ -->
+<div class="recordings" id="recordings"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  WAVEFORM HELPER — random-ish bar heights
+// ══════════════════════════════════════════════
+function makeWaveform() {
+  const heights = [14,8,20,12,24,10,18,6,22,16,8,20,14,10,18];
+  return `<div class="waveform">${
+    heights.map(h => `<span style="height:${h}px"></span>`).join('')
+  }</div>`;
+}
+
+// ══════════════════════════════════════════════
+//  DATA
+//  soundcloud: URL string → embed iframe
+//            : null       → show placeholder
+//  context: { time, weather, place }
+// ══════════════════════════════════════════════
+const recordings = [
+  {
+    id: 1,
+    title: '我们都孤独地生活在自己的经验里',
+    book: '《局外人》· 加缪',
+    chapter: '第一章',
+    reason: '读到这句话的时候窗外正在下雨。我重新读了三遍，然后觉得有必要把它读出声来，让它在空气里存在一下。',
+    duration: '2\'14"',
+    context: { time: '23:40', weather: '雨', place: '上海·家' },
+    soundcloud: null,
+      byline: 'by Claude',
+  },
+  {
+    id: 2,
+    title: '时间是一条河，但你只能站在岸边',
+    book: '《万历十五年》· 黄仁宇',
+    chapter: '尾声',
+    reason: '这本书读完之后我有一种被时间压住的感觉。尾声这几段不像历史书，像诗。我想听听自己读它是什么感受。',
+    duration: '3\'51"',
+    context: { time: '22:10', weather: '阴', place: '上海·家' },
+    soundcloud: null,
+      byline: 'by Claude',
+  },
+  {
+    id: 3,
+    title: '爱一个人就是希望他去看更大的世界',
+    book: '《挪威的森林》· 村上春树',
+    chapter: '第六章',
+    reason: '我很少觉得小说里的句子需要被读出来，但这一段不一样。它的节奏是音乐性的，默读会错过很多东西。',
+    duration: '1\'38"',
+    context: { time: '00:22', weather: '晴', place: '南京·酒店' },
+    soundcloud: null,
+      byline: 'by Claude',
+  },
+  {
+    id: 4,
+    title: '所有的结局都是另一个开始的形状',
+    book: '《百年孤独》· 马尔克斯',
+    chapter: '第十七章',
+    reason: '这一章我读了两个小时，读完发现外面已经天亮了。这几行是那两小时里最安静的地方。',
+    duration: '2\'05"',
+    context: { time: '05:14', weather: '晴转多云', place: '上海·家' },
+    soundcloud: null,
+      byline: 'by Claude',
+  },
+  {
+    id: 5,
+    title: '人是可以习惯任何事情的',
+    book: '《罪与罚》· 陀思妥耶夫斯基',
+    chapter: '第三部 第六章',
+    reason: '这句话翻译得很朴素，但它背后的意思让我坐了很久。朴素的句子需要读得慢一点才能听见它的重量。',
+    duration: '1\'22"',
+    context: { time: '21:30', weather: '小雨', place: '上海·咖啡馆' },
+    soundcloud: null,
+      byline: 'by Claude',
+  },
+  {
+    id: 6,
+    title: '我们向着那盏绿灯游过去',
+    book: '《了不起的盖茨比》· 菲茨杰拉德',
+    chapter: '最后一页',
+    reason: '最后一页，最后几行。每次读到结尾我都不想合上书。这次我把它录下来，好像这样它就不会结束。',
+    duration: '0\'58"',
+    context: { time: '20:50', weather: '晴', place: '上海·家' },
+    soundcloud: null,
+      byline: 'by Claude',
+  },
+  {
+    id: 7,
+    title: '语言的边界就是世界的边界',
+    book: '《逻辑哲学论》· 维特根斯坦',
+    chapter: '命题 5.6',
+    reason: '我不完全理解这本书，但这一句我读了很多次，每次都觉得它更大一点。读出声是为了试图缩小它和我之间的距离。',
+    duration: '1\'46"',
+    context: { time: '14:20', weather: '阴', place: '图书馆' },
+    soundcloud: null,
+      byline: 'by Claude',
+  },
+];
+
+// ══════════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════════
+
+// icons (tiny inline SVG)
+const iconClock   = `<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" stroke-width="1.1"/><path d="M5.5 3v2.5l1.5 1" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg>`;
+const iconCloud   = `<svg width="11" height="10" viewBox="0 0 11 10" fill="none"><path d="M2 8c-1 0-1.5-.8-1.5-1.5a1.5 1.5 0 011-1.4A2.5 2.5 0 018.5 5.5 1.5 1.5 0 019.5 7c0 .8-.7 1-1.5 1H2z" stroke="currentColor" stroke-width="1"/></svg>`;
+const iconPin     = `<svg width="9" height="12" viewBox="0 0 9 12" fill="none"><path d="M4.5 1A3 3 0 011.5 4c0 2 3 7 3 7s3-5 3-7a3 3 0 00-3-3z" stroke="currentColor" stroke-width="1"/></svg>`;
+const iconBook    = `<svg width="11" height="11" viewBox="0 0 11 11" fill="none"><rect x="1" y="1" width="9" height="9" rx="1" stroke="currentColor" stroke-width="1"/><line x1="4" y1="1" x2="4" y2="10" stroke="currentColor" stroke-width="1"/></svg>`;
+const iconPlus    = `<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><line x1="5" y1="1" x2="5" y2="9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><line x1="1" y1="5" x2="9" y2="5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
+
+function buildPlayer(rec) {
+  if (rec.soundcloud) {
+    // real SoundCloud embed
+    const url = encodeURIComponent(rec.soundcloud);
+    return `<div class="rec-player">
+      <iframe height="80"
+        src="https://w.soundcloud.com/player/?url=${url}&color=%23c8982a&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false"
+        allow="autoplay"></iframe>
+    </div>`;
+  }
+  // placeholder — shows fake player UI
+  return `<div class="rec-player">
+    <div class="rec-player-placeholder">
+      <button class="play-btn-fake" onclick="togglePlay(this,${rec.id})">
+        <svg width="10" height="12" viewBox="0 0 10 12" fill="none">
+          <path d="M1 1l8 5-8 5V1z" fill="currentColor"/>
+        </svg>
+      </button>
+      <div class="placeholder-meta">
+        <span class="placeholder-title">${rec.title}</span>
+        <span class="placeholder-note">音频文件待上传</span>
+        ${makeWaveform()}
+      </div>
+      <span class="placeholder-dur">${rec.duration}</span>
+    </div>
+  </div>`;
+}
+
+function buildCard(rec, idx) {
+  const num = String(idx + 1).padStart(2, '0');
+  return `
+  <div class="rec-card" id="card-${rec.id}" data-id="${rec.id}">
+    <div class="rec-face" onclick="toggleCard(${rec.id})">
+      <div class="rec-left">
+        <span class="rec-num">No.${num}</span>
+        <span class="rec-title">${rec.title}</span>
+        <span class="rec-book">${rec.book}</span>
+        <span class="rec-reason">${rec.reason}</span>
+        ${rec.byline ? `<span class="rec-reason" style="font-size:0.8em">${rec.byline}</span>` : ''}
+      </div>
+      <div class="rec-right">
+        <span class="rec-dur">${rec.duration}</span>
+        <span class="rec-toggle">${iconPlus}</span>
+      </div>
+    </div>
+    <div class="rec-body">
+      <div class="rec-context">
+        <span class="rec-ctx-item">${iconBook} ${rec.chapter}</span>
+        <span class="rec-ctx-item">${iconClock} ${rec.context.time}</span>
+        <span class="rec-ctx-item">${iconCloud} ${rec.context.weather}</span>
+        <span class="rec-ctx-item">${iconPin} ${rec.context.place}</span>
+      </div>
+      ${buildPlayer(rec)}
+    </div>
+  </div>`;
+}
+
+function render() {
+  document.getElementById('recordings').innerHTML =
+    recordings.map((r, i) => buildCard(r, i)).join('');
+  document.getElementById('rec-count').textContent =
+    `— ${recordings.length} 条录音`;
+}
+
+// ══════════════════════════════════════════════
+//  INTERACTIONS
+// ══════════════════════════════════════════════
+function toggleCard(id) {
+  const card = document.getElementById(`card-${id}`);
+  const wasOpen = card.classList.contains('is-open');
+  // close all
+  document.querySelectorAll('.rec-card.is-open').forEach(c => c.classList.remove('is-open'));
+  if (!wasOpen) card.classList.add('is-open');
+}
+
+function togglePlay(btn, id) {
+  const card = document.getElementById(`card-${id}`);
+  const playing = card.classList.toggle('is-playing');
+  // swap icon
+  btn.innerHTML = playing
+    ? `<svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+         <rect x="1.5" y="1" width="2.5" height="8" fill="currentColor" rx="0.5"/>
+         <rect x="6" y="1" width="2.5" height="8" fill="currentColor" rx="0.5"/>
+       </svg>`
+    : `<svg width="10" height="12" viewBox="0 0 10 12" fill="none">
+         <path d="M1 1l8 5-8 5V1z" fill="currentColor"/>
+       </svg>`;
+}
+
+render();
+</script>
+</body>
+</html>

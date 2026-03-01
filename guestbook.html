@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>留言 · tutududu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Caveat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:    #eeeae0;
+  --paper: #faf6ed;
+  --ink:   #1b1710;
+  --ink2:  #5a5045;
+  --rust:  #b8592a;
+  --line:  #7a7268;
+  --sage:  #5f8860;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Lora', Georgia, serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+body::after {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:999;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23g)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+@keyframes fadeUp   { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+@keyframes popIn    { from{opacity:0;transform:scale(0.94) translateY(8px)} to{opacity:1;transform:scale(1) translateY(0)} }
+@keyframes checkIn  { from{stroke-dashoffset:30} to{stroke-dashoffset:0} }
+
+/* ── HEADER ── */
+header {
+  position:fixed; top:0; left:0; right:0;
+  padding:1.7rem 3.5rem;
+  display:flex; justify-content:space-between; align-items:baseline;
+  z-index:200;
+  background:rgba(238,234,224,0.84);
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+}
+.logo {
+  font-family:'Caveat',cursive; font-weight:700; font-size:2rem;
+  color:var(--ink); transform:rotate(-1deg); display:inline-block;
+  text-decoration:none; position:relative;
+}
+.logo::after {
+  content:''; display:block; width:100%; height:7px; margin-top:-3px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 7'%3E%3Cpath d='M1 4 Q20 1 40 4.5 Q60 8 80 3.5 Q100 0 120 4.5 Q140 8 159 3' stroke='%23b8592a' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat left / 100% 100%;
+}
+nav { display:flex; gap:2.4rem; }
+nav a {
+  font-family:'Lora',serif; font-size:0.8rem; font-weight:500;
+  text-decoration:none; color:var(--ink2); transition:color 0.2s; position:relative;
+}
+nav a:hover, nav a.active { color:var(--rust); }
+nav a::after { content:''; position:absolute; bottom:-3px; left:0; width:0; height:1.5px; background:var(--rust); transition:width 0.3s; }
+nav a:hover::after, nav a.active::after { width:100%; }
+
+/* ── PAGE LAYOUT ── */
+.page {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 8rem 2rem 6rem;
+}
+
+/* ── HEADER BLOCK ── */
+.page-header {
+  margin-bottom: 3.5rem;
+  opacity:0; animation: fadeUp 0.55s 0.05s ease forwards;
+}
+.page-title {
+  font-family:'Caveat',cursive; font-size: clamp(2.6rem,6vw,4rem);
+  font-weight:700; color:var(--ink);
+  display:inline-block; transform:rotate(-1deg);
+  line-height:1; position:relative;
+}
+.page-title::after {
+  content:''; display:block; height:9px; margin-top:-1px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 9'%3E%3Cpath d='M2 6 Q55 2 110 6 Q165 10 218 5' stroke='%23b8592a' stroke-width='2.2' fill='none' stroke-linecap='round' opacity='0.55'/%3E%3C/svg%3E") no-repeat left / 100% 100%;
+}
+.page-sub {
+  display:block; margin-top:1rem;
+  font-family:'Lora',serif; font-style:italic;
+  font-size:0.9rem; color:var(--ink2); opacity:0.6; line-height:1.7;
+}
+
+/* ══ WRITE FORM ═══════════════════════════════════════════ */
+.write-section {
+  background: var(--paper);
+  padding: 2rem 2rem 1.8rem;
+  margin-bottom: 3rem;
+  position: relative;
+  clip-path: polygon(0% 0.5%, 0.5% 0%, 99.5% 0.3%, 100% 0%, 100% 99.5%, 99% 100%, 1% 100%, 0% 99.2%);
+  filter: drop-shadow(2px 4px 12px rgba(28,23,16,0.08));
+  opacity:0; animation: fadeUp 0.55s 0.15s ease forwards;
+}
+
+/* tape strip top centre */
+.write-section::before {
+  content:''; position:absolute; top:-7px; left:50%; transform:translateX(-50%);
+  width:64px; height:16px; border-radius:2px;
+  background: #f0dc84; opacity:0.55;
+}
+
+.write-section h2 {
+  font-family:'Caveat',cursive; font-size:1.15rem; font-weight:700;
+  color:var(--ink); margin-bottom:1.4rem;
+  display:flex; align-items:center; gap:0.5rem;
+}
+.write-section h2 svg { opacity:0.45; flex-shrink:0; }
+
+/* form fields */
+.field { margin-bottom:1.1rem; }
+.field label {
+  display:block; margin-bottom:0.35rem;
+  font-family:'Caveat',cursive; font-size:0.82rem; font-weight:500;
+  color:var(--line); opacity:0.7;
+}
+.field input,
+.field textarea {
+  width:100%; padding:0.65rem 0.8rem;
+  font-family:'Lora',serif; font-size:0.9rem;
+  color:var(--ink);
+  background:var(--bg);
+  border:1.5px solid rgba(28,23,16,0.12);
+  border-radius:2px;
+  outline:none;
+  transition:border-color 0.2s;
+  resize:none;
+  line-height:1.7;
+}
+.field input::placeholder,
+.field textarea::placeholder {
+  color:var(--line); opacity:0.35;
+  font-style:italic;
+}
+.field input:focus,
+.field textarea:focus {
+  border-color:var(--rust);
+  background:var(--paper);
+}
+
+/* name + anon row */
+.field-row {
+  display:grid; grid-template-columns:1fr auto;
+  gap:0.8rem; align-items:end;
+}
+.anon-toggle {
+  display:flex; align-items:center; gap:0.4rem;
+  cursor:pointer; padding-bottom:0.65rem;
+  font-family:'Caveat',cursive; font-size:0.8rem;
+  color:var(--line); opacity:0.55; user-select:none;
+  white-space:nowrap;
+}
+.anon-toggle input[type=checkbox] { display:none; }
+.anon-box {
+  width:16px; height:16px; border-radius:2px;
+  border:1.5px solid rgba(28,23,16,0.22);
+  display:flex; align-items:center; justify-content:center;
+  transition:all 0.18s; flex-shrink:0;
+}
+.anon-toggle input:checked ~ .anon-box {
+  background:var(--rust); border-color:var(--rust);
+}
+.anon-check {
+  stroke-dasharray:30; stroke-dashoffset:30;
+  transition:stroke-dashoffset 0.25s ease;
+}
+.anon-toggle input:checked ~ .anon-box .anon-check {
+  stroke-dashoffset:0;
+}
+
+/* char counter */
+.char-counter {
+  text-align:right; margin-top:0.3rem;
+  font-family:'Caveat',cursive; font-size:0.72rem;
+  color:var(--line); opacity:0.3;
+  transition:opacity 0.2s;
+}
+.char-counter.near-limit { opacity:0.7; color:var(--rust); }
+
+/* submit button */
+.submit-btn {
+  margin-top:0.6rem;
+  display:inline-flex; align-items:center; gap:0.55rem;
+  font-family:'Caveat',cursive; font-size:1rem; font-weight:700;
+  color:#fff; background:var(--rust);
+  border:none; border-radius:2px;
+  padding:0.6rem 1.5rem;
+  cursor:pointer;
+  transition:all 0.2s;
+  position:relative; overflow:hidden;
+}
+.submit-btn:hover {
+  background:#a04820;
+  transform:translateY(-1px);
+  filter:drop-shadow(0 3px 8px rgba(184,89,42,0.3));
+}
+.submit-btn:active { transform:translateY(0); }
+.submit-btn svg { transition:transform 0.2s; }
+.submit-btn:hover svg { transform:translateX(2px); }
+
+/* success state */
+.submit-success {
+  display:none; align-items:center; gap:0.6rem;
+  font-family:'Caveat',cursive; font-size:0.95rem; font-weight:500;
+  color:var(--sage); margin-top:0.8rem;
+}
+.submit-success.show { display:flex; animation: popIn 0.3s ease; }
+.check-circle { flex-shrink:0; }
+
+/* ══ EXISTING MESSAGES ════════════════════════════════════ */
+.messages-section {
+  opacity:0; animation: fadeUp 0.5s 0.3s ease forwards;
+}
+.messages-header {
+  display:flex; align-items:baseline; gap:0.8rem;
+  margin-bottom:1.8rem;
+}
+.messages-header h2 {
+  font-family:'Caveat',cursive; font-size:1.1rem; font-weight:700;
+  color:var(--ink);
+}
+.messages-count {
+  font-family:'Caveat',cursive; font-size:0.78rem;
+  color:var(--line); opacity:0.4;
+}
+
+/* divider */
+.section-rule {
+  display:block; height:8px; margin-bottom:1.8rem;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 8'%3E%3Cpath d='M0 4 Q75 2 150 4.5 Q225 7 300 3.5 Q375 1 450 4.5 Q525 7 600 4' stroke='%231b1710' stroke-width='1' fill='none' opacity='0.08'/%3E%3C/svg%3E") no-repeat left / 100% 100%;
+}
+
+/* message card */
+.msg-card {
+  background: var(--paper);
+  padding: 1.4rem 1.6rem;
+  margin-bottom: 1rem;
+  position: relative;
+  clip-path: polygon(0% 0.8%, 0.8% 0%, 99.2% 0.4%, 100% 0%, 100% 99.2%, 98.8% 100%, 1.2% 100%, 0% 98.8%);
+  filter: drop-shadow(1px 3px 8px rgba(28,23,16,0.07));
+  transition:filter 0.2s;
+}
+.msg-card:hover {
+  filter: drop-shadow(2px 5px 12px rgba(28,23,16,0.11));
+}
+
+/* rotation for visual rhythm */
+.msg-card:nth-child(3n+1) { transform:rotate(-0.2deg); }
+.msg-card:nth-child(3n+2) { transform:rotate(0.15deg); }
+.msg-card:nth-child(3n)   { transform:rotate(-0.1deg); }
+
+.msg-top {
+  display:flex; align-items:baseline; justify-content:space-between;
+  margin-bottom:0.6rem;
+}
+.msg-name {
+  font-family:'Caveat',cursive; font-size:0.92rem; font-weight:700;
+  color:var(--ink);
+}
+.msg-date {
+  font-family:'Caveat',cursive; font-size:0.72rem;
+  color:var(--line); opacity:0.38;
+}
+.msg-text {
+  font-family:'Lora',serif; font-size:0.88rem;
+  color:var(--ink2); line-height:1.8; opacity:0.85;
+}
+
+/* reply — indented, slightly different bg */
+.msg-reply {
+  margin-top:0.9rem; padding:0.8rem 1rem;
+  background:rgba(28,23,16,0.03);
+  border-left:2px solid rgba(184,89,42,0.25);
+  border-radius:0 2px 2px 0;
+}
+.msg-reply-label {
+  font-family:'Caveat',cursive; font-size:0.7rem; font-weight:700;
+  color:var(--rust); opacity:0.65; display:block; margin-bottom:0.3rem;
+}
+.msg-reply-text {
+  font-family:'Lora',serif; font-size:0.84rem;
+  color:var(--ink2); line-height:1.75; opacity:0.75;
+}
+
+/* empty state */
+.empty-msg {
+  text-align:center; padding:3rem 0;
+  font-family:'Caveat',cursive; font-size:1rem;
+  color:var(--line); opacity:0.38;
+}
+
+@media(max-width:600px) {
+  header { padding:1.4rem 1.5rem; }
+  .page  { padding:7rem 1.5rem 5rem; }
+  .write-section { padding:1.8rem 1.4rem 1.5rem; }
+  .field-row { grid-template-columns:1fr; }
+  .anon-toggle { padding-bottom:0; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="index.html">tutududu</a>
+  <nav>
+    <a href="writing.html">文字</a>
+    <a href="film.html">影像</a>
+    <a href="sound.html">声音</a>
+    <a href="guestbook.html" class="active">留言</a>
+  </nav>
+</header>
+
+<div class="page">
+
+  <!-- ── HEADER ── -->
+  <div class="page-header">
+    <h1 class="page-title">留言</h1>
+    <span class="page-sub">
+      路过，留个字。<br>
+      不一定要说什么大事，随便写。
+    </span>
+  </div>
+
+  <!-- ══ WRITE FORM ══ -->
+  <div class="write-section">
+    <h2>
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M2 10L3.5 10.5L11 3 Q12 2 11 1 Q10 0 9 1L1.5 8.5 2 10Z" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linejoin="round"/>
+        <line x1="1" y1="13" x2="13" y2="13" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.3"/>
+      </svg>
+      写留言
+    </h2>
+
+    <form id="msg-form" onsubmit="submitMsg(event)">
+      <div class="field">
+        <div class="field-row">
+          <div>
+            <label for="f-name">称呼</label>
+            <input type="text" id="f-name" placeholder="你叫什么，或者随便起一个" maxlength="30" autocomplete="off">
+          </div>
+          <label class="anon-toggle">
+            <input type="checkbox" id="f-anon" onchange="toggleAnon()">
+            <span class="anon-box">
+              <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
+                <polyline class="anon-check" points="1,3.5 3.5,6 8,1" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            匿名
+          </label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="f-msg">留言</label>
+        <textarea id="f-msg" rows="4" placeholder="想说什么都可以，关于某篇文字、某条录音，或者只是路过打个招呼……" maxlength="300" oninput="updateCount()"></textarea>
+        <p class="char-counter" id="char-counter">0 / 300</p>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap">
+        <button type="submit" class="submit-btn">
+          留下来
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+            <path d="M2 6.5h9M8 3l3.5 3.5L8 10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="submit-success" id="submit-success">
+          <svg class="check-circle" width="18" height="18" viewBox="0 0 18 18" fill="none">
+            <circle cx="9" cy="9" r="8" stroke="currentColor" stroke-width="1.3"/>
+            <polyline points="5,9 8,12 13,6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          留下来了，谢谢你。
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- ══ MESSAGES LIST ══ -->
+  <div class="messages-section">
+    <div class="messages-header">
+      <h2>大家留的</h2>
+      <span class="messages-count" id="msg-count"></span>
+    </div>
+    <span class="section-rule"></span>
+    <div id="msg-list"></div>
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  SAMPLE MESSAGES — replace with real DB data later
+// ══════════════════════════════════════════════
+const sampleMessages = [
+  {
+    name: '晚风',
+    date: '2024.11.18 · by Claude',
+    text: '那篇数窗户的文章，我也有这个习惯，但从来没想过要写下来。谢谢你写了。',
+    reply: '原来不止我一个人在数。'
+  },
+  {
+    name: '匿名',
+    date: '2024.11.12 · by Claude',
+    text: '声音页面好喜欢，你读书的选择很有意思。维特根斯坦那条的理由让我笑了，「不完全理解但想缩小距离」，太真实了。',
+    reply: null
+  },
+  {
+    name: 'L.',
+    date: '2024.10.30 · by Claude',
+    text: '凌晨三点的厨房那篇，读了好几遍。那个「换齿轮」的比喻很准确。',
+    reply: '三点钟适合想这些事情。'
+  },
+  {
+    name: '路过的人',
+    date: '2024.10.14 · by Claude',
+    text: '网站很好看，插画和文字放在一起的感觉很对。',
+    reply: null
+  },
+  {
+    name: '匿名',
+    date: '2024.09.28 · by Claude',
+    text: '「语言的网眼太大」——这个比喻我要偷走了。',
+    reply: '拿去用，不用还。'
+  },
+];
+
+// runtime messages added this session (static, no persistence)
+let sessionMessages = [];
+
+// ══════════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════════
+function renderMessages() {
+  const all = [...sessionMessages, ...sampleMessages];
+  const list = document.getElementById('msg-list');
+  document.getElementById('msg-count').textContent = `${all.length} 条`;
+
+  if (!all.length) {
+    list.innerHTML = `<div class="empty-msg">还没有留言，来第一个？</div>`;
+    return;
+  }
+  list.innerHTML = all.map(m => `
+    <div class="msg-card">
+      <div class="msg-top">
+        <span class="msg-name">${escHtml(m.name)}</span>
+        <span class="msg-date">${m.date}</span>
+      </div>
+      <p class="msg-text">${escHtml(m.text)}</p>
+      ${m.reply ? `
+        <div class="msg-reply">
+          <span class="msg-reply-label">tutududu 回</span>
+          <p class="msg-reply-text">${escHtml(m.reply)}</p>
+        </div>` : ''}
+    </div>`).join('');
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ══════════════════════════════════════════════
+//  FORM INTERACTIONS
+// ══════════════════════════════════════════════
+function toggleAnon() {
+  const nameInput = document.getElementById('f-name');
+  const isAnon = document.getElementById('f-anon').checked;
+  nameInput.disabled = isAnon;
+  nameInput.value = isAnon ? '' : nameInput.value;
+  nameInput.placeholder = isAnon ? '匿名留言' : '你叫什么，或者随便起一个';
+  nameInput.style.opacity = isAnon ? '0.35' : '1';
+}
+
+function updateCount() {
+  const ta = document.getElementById('f-msg');
+  const counter = document.getElementById('char-counter');
+  const len = ta.value.length;
+  counter.textContent = `${len} / 300`;
+  counter.classList.toggle('near-limit', len > 260);
+}
+
+function submitMsg(e) {
+  e.preventDefault();
+  const isAnon = document.getElementById('f-anon').checked;
+  const name = isAnon ? '匿名' : (document.getElementById('f-name').value.trim() || '匿名');
+  const text = document.getElementById('f-msg').value.trim();
+  if (!text) { document.getElementById('f-msg').focus(); return; }
+
+  // format date
+  const now = new Date();
+  const date = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+
+  // prepend to session messages
+  sessionMessages.unshift({ name, date, text, reply:null });
+  renderMessages();
+
+  // reset form
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-msg').value = '';
+  document.getElementById('f-anon').checked = false;
+  toggleAnon();
+  updateCount();
+
+  // show success
+  const success = document.getElementById('submit-success');
+  success.classList.add('show');
+  setTimeout(() => success.classList.remove('show'), 3500);
+}
+
+// ── INIT
+renderMessages();
+</script>
+</body>
+</html>
