@@ -328,9 +328,7 @@ nav a:hover::after, nav a.active::after { width:100%; }
     <div class="filter-group">
       <span class="filter-label">分类</span>
       <button class="tag-btn active" data-tag="all">全部</button>
-      <button class="tag-btn" data-tag="随笔">随笔</button>
-      <button class="tag-btn" data-tag="思考">思考</button>
-      <button class="tag-btn" data-tag="记录">记录</button>
+      <span id="tag-btn-list"></span>
     </div>
     <div class="filter-group">
       <span class="filter-label">目录</span>
@@ -581,10 +579,10 @@ document.getElementById('back-btn').addEventListener('click', () => {
 });
 
 // ── FILTER
-document.querySelectorAll('.tag-btn').forEach(btn => {
+document.querySelectorAll('.tag-btn-placeholder').forEach(btn => {
   btn.addEventListener('click', () => {
     currentTag = btn.dataset.tag;
-    document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tag-btn-placeholder').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     const filtered = currentTag === 'all' ? articles : articles.filter(a => a.tag === currentTag);
     renderList(filtered);
@@ -596,6 +594,27 @@ document.querySelectorAll('.tag-btn').forEach(btn => {
 });
 
 // ── INIT
+// Build tag buttons dynamically from articles
+const tags = [...new Set(articles.map(a => a.tag))];
+document.getElementById('tag-btn-list').innerHTML = tags.map(t =>
+  `<button class="tag-btn" data-tag="${t}">${t}</button>`
+).join('');
+
+// Re-attach click handlers to new buttons
+document.querySelectorAll('.tag-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tag-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const tag = btn.dataset.tag;
+    const filtered = tag === 'all' ? articles : articles.filter(a => a.tag === tag);
+    renderList(filtered);
+    renderIndex(filtered);
+    currentArticle = null;
+    document.getElementById('list-view').classList.remove('hidden');
+    document.getElementById('article-view').classList.remove('visible');
+  });
+});
+
 renderList(articles);
 
 // open article directly from URL hash: writing.html#article=1
