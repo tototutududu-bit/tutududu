@@ -550,6 +550,10 @@ function openArticle(id) {
   if (!a) return;
   currentArticle = a;
 
+  // Replace illus placeholders with actual SVG
+  const processedBody = a.body.replace(/__ILLUS:([^:]+):([^:]*):([^:]*):([^_]+)__/g,
+    (_, svgKey, caption, note, rotClass) => inlineIllus(svgKey, caption, note||null, rotClass));
+  const bodyToRender = processedBody;
   document.getElementById('article-content').innerHTML = `
     <div class="article-header">
       <span class="article-tag">${a.tag}</span>
