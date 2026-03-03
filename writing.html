@@ -559,7 +559,7 @@ function openArticle(id) {
       <span class="article-date">${a.date} · <span style="opacity:1;font-size:0.82em">${a.byline||''}</span> · ${a.readtime}</span>
     </div>
     <span class="article-rule"></span>
-    <div class="article-body">${a.body}</div>
+    <div class="article-body">${bodyToRender}</div>
   `;
 
   document.getElementById('list-view').classList.add('hidden');
