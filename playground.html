@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>留言板 · 照片墙方案</title>
+<title>留言板 · B/C 对比</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
 <style>
 :root {
   --ink:#1c1710; --ink2:#3a3226; --line:#7a6e5c;
@@ -20,214 +20,537 @@ body {
   min-height:100vh;
 }
 
-/* ── HEADER ── */
-.page-head {
-  padding:5rem 3.5rem 2rem;
-  max-width:760px;
+/* ── TOOLBAR ── */
+.toolbar {
+  position:sticky; top:0; z-index:100;
+  display:flex; align-items:center; gap:0.8rem;
+  padding:1rem 2rem;
+  background:rgba(237,230,210,0.93); backdrop-filter:blur(6px);
+  border-bottom:1px solid rgba(28,23,16,0.1);
 }
-.page-head h1 {
+.toolbar-label {
+  font-family:'Caveat',cursive; font-size:1.2rem; font-weight:700;
+  color:var(--ink); margin-right:0.6rem;
+}
+.lvl-btn {
+  font-family:'Lora',serif; font-size:0.85rem; font-weight:600;
+  padding:0.45rem 1.1rem; border:1.5px solid var(--line); background:transparent;
+  border-radius:999px; color:var(--ink2); cursor:pointer;
+  transition:all 0.18s ease;
+}
+.lvl-btn:hover { border-color:var(--rust); color:var(--rust); }
+.lvl-btn.active {
+  background:var(--ink); color:var(--paper); border-color:var(--ink);
+}
+.toolbar-hint {
+  margin-left:auto; font-family:'Caveat',cursive; font-size:1rem;
+  color:var(--line); opacity:0.7;
+}
+
+/* 只显示当前模式 */
+body:not(.mode-b) .stage-b { display:none; }
+body:not(.mode-c) .stage-c { display:none; }
+
+/* ══════════════════════════════════════
+   PLAN B · 签名簿
+   —— 一整张横线稿纸，条目一条接一条往下写
+   ══════════════════════════════════════ */
+.stage-b {
+  padding:4rem 2rem 5rem 3.5rem;
+  max-width:760px;
+  animation:fadeIn 0.3s ease;
+}
+@keyframes fadeIn { from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+
+.book-head {
+  margin-bottom:2rem;
+}
+.book-head h1 {
   font-family:'Caveat',cursive; font-size:2rem; font-weight:700;
-  display:inline-block; transform:rotate(-0.5deg);
+  display:inline-block; transform:rotate(-0.4deg);
   position:relative;
 }
-.page-head h1::after {
-  content:''; display:block; height:6px; margin-top:0;
+.book-head h1::after {
+  content:''; display:block; height:6px;
   background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 9'%3E%3Cpath d='M2 6 Q55 2 110 6 Q165 10 218 5' stroke='%23b8592a' stroke-width='2.2' fill='none' stroke-linecap='round' opacity='0.55'/%3E%3C/svg%3E") no-repeat left / 100% 100%;
 }
-.page-head .sub {
-  margin-top:0.8rem;
+.book-head .sub {
+  margin-top:0.7rem;
   font-family:'Lora',serif; font-style:italic;
   font-size:0.9rem; color:var(--ink2); opacity:0.6;
 }
 
-/* ══════════════════════════════════════
-   PHOTO WALL
-   —— 照片墙：每条留言 = 一张拍立得
-   ══════════════════════════════════════ */
-.wall {
-  display:flex; flex-direction:column; align-items:center;
-  gap:2.8rem;
-  max-width:520px;
-  margin:0;
-  padding:2rem 2rem 6rem 3.5rem;
-}
-
-/* 单张照片 */
-.photo {
-  background:#ffffff;
-  padding:12px 12px 44px;
-  filter:drop-shadow(2px 5px 14px rgba(28,23,16,0.13));
+/* 横线稿纸 —— 浅蓝横线，左边一条红竖线（笔记本） */
+.logbook {
   position:relative;
-  width:100%;
-  transition:transform 0.35s ease, filter 0.35s ease;
-  cursor:default;
+  background:#f9f2de;
+  padding:2rem 2rem 2.5rem 5rem;
+  background-image:
+    linear-gradient(to right, transparent 3.2rem, rgba(184,89,42,0.35) 3.2rem, rgba(184,89,42,0.35) calc(3.2rem + 1px), transparent calc(3.2rem + 1px)),
+    linear-gradient(to bottom,
+      transparent 0, transparent calc(2.2rem - 1px),
+      rgba(70,110,180,0.22) calc(2.2rem - 1px), rgba(70,110,180,0.22) 2.2rem,
+      transparent 2.2rem);
+  background-size:100% 100%, 100% 2.2rem;
+  background-position:0 0, 0 1.1rem;
+  filter:drop-shadow(1px 3px 10px rgba(28,23,16,0.1));
 }
-.photo:hover {
-  transform:rotate(0deg) translateY(-4px) !important;
-  filter:drop-shadow(3px 8px 20px rgba(28,23,16,0.18));
-  z-index:5;
-}
-
-/* 每张随机倾斜 + 左右轻微错位，像墙上随手钉的 */
-.photo.r-a { transform:rotate(-1.6deg) translateX(-10px); }
-.photo.r-b { transform:rotate(1.2deg)  translateX(8px);  }
-.photo.r-c { transform:rotate(-0.7deg) translateX(-4px); }
-.photo.r-d { transform:rotate(1.8deg)  translateX(12px); }
-.photo.r-e { transform:rotate(-1.3deg) translateX(-14px);}
-.photo.r-f { transform:rotate(0.6deg)  translateX(6px);  }
-
-/* "照片"区域：留言文字坐在这里，带一点老照片色调 */
-.photo-area {
-  padding:1.8rem 1.6rem;
-  min-height:110px;
-  display:flex; align-items:center;
-  position:relative;
-}
-.photo-area::after {
-  /* 轻微颗粒感 */
+/* 纸的纹理 */
+.logbook::before {
   content:''; position:absolute; inset:0;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)' opacity='0.08'/%3E%3C/svg%3E");
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)' opacity='0.08'/%3E%3C/svg%3E");
   mix-blend-mode:multiply; pointer-events:none;
 }
 
-/* 五种淡色"底片色"——低饱和、像褪色老照片 */
-.tint-cream { background:#f4ebd6; }
-.tint-sepia { background:#e8dcc2; }
-.tint-rose  { background:#ecd9cc; }
-.tint-sage  { background:#dde2d1; }
-.tint-sky   { background:#d9dfe3; }
-
-/* 留言文字 */
-.photo-msg {
+.entry {
+  position:relative;
+  min-height:2.2rem;
+  padding:0.4rem 0 0.6rem;
+  margin-bottom:1.4rem;
   font-family:'Caveat',cursive;
-  font-size:1.25rem; font-weight:500;
-  line-height:1.55; color:var(--ink);
-  position:relative; z-index:2;
+  line-height:2.2rem;
 }
+.entry:last-child { margin-bottom:0; }
 
-/* 底部"照片章"——像冲洗店盖的戳 */
-.photo-stamp {
+/* 日期戳：浮在左边红线外的小字 */
+.entry-date {
   position:absolute;
-  bottom:14px; left:18px; right:18px;
-  display:flex; justify-content:space-between; align-items:baseline;
-  font-family:'Caveat',cursive;
-  font-size:0.92rem;
-  color:#7a6e5c;
-}
-.stamp-name { font-weight:600; color:#5a4838; }
-.stamp-date {
-  font-family:'Courier New',monospace; font-size:0.72rem; font-weight:600;
-  letter-spacing:0.05em;
-  color:#b8592a; opacity:0.55;
-  padding:2px 6px;
-  border:1px solid rgba(184,89,42,0.3);
-  border-radius:2px;
-  transform:rotate(-2deg);
+  left:-3.8rem; top:0.4rem;
+  font-family:'Courier New',monospace;
+  font-size:0.7rem; font-weight:600;
+  color:#a06040;
+  letter-spacing:0.03em;
+  transform:rotate(-3deg);
+  width:3rem; text-align:right;
 }
 
-/* 第一张"用了图钉"——一个小装饰，示意可以但不每张都用 */
-.photo.pinned::before {
+/* 昵称：加粗、首字母感 */
+.entry-name {
+  font-weight:700;
+  font-size:1.15rem;
+  color:var(--ink);
+  margin-right:0.5rem;
+}
+.entry-name::after { content:'：'; color:var(--line); opacity:0.55; }
+
+/* 留言文字 —— 不同深浅像不同人用了不同笔 */
+.entry-text {
+  font-size:1.2rem; font-weight:500;
+}
+
+/* 墨色变化 —— 不同条目假装用了不同笔 */
+.entry[data-ink="black"] { color:#1c1710; }
+.entry[data-ink="blue"]  { color:#2a3a6a; }
+.entry[data-ink="brown"] { color:#5a3020; }
+.entry[data-ink="sepia"] { color:#3a2a14; }
+.entry[data-ink="grey"]  { color:#4a4438; }
+
+/* 每个条目微微的笔迹斜度 */
+.entry[data-rot="a"] { transform:rotate(-0.2deg); }
+.entry[data-rot="b"] { transform:rotate(0.3deg); }
+.entry[data-rot="c"] { transform:rotate(-0.4deg); }
+.entry[data-rot="d"] { transform:rotate(0.1deg); }
+.entry[data-rot="e"] { transform:rotate(-0.1deg); }
+.entry[data-rot="f"] { transform:rotate(0.25deg); }
+
+/* 尾部"还有空位" */
+.book-tail {
+  margin-top:1.6rem;
+  font-family:'Caveat',cursive;
+  font-size:1.05rem; color:var(--line);
+  opacity:0.55; font-style:italic;
+}
+
+/* ══════════════════════════════════════
+   PLAN C · 小信封墙
+   —— 每条留言是一封信，点一下打开
+   ══════════════════════════════════════ */
+.stage-c {
+  padding:4rem 2rem 5rem 3.5rem;
+  max-width:900px;
+  animation:fadeIn 0.3s ease;
+}
+.mail-head {
+  margin-bottom:2.5rem;
+}
+.mail-head h1 {
+  font-family:'Caveat',cursive; font-size:2rem; font-weight:700;
+  display:inline-block; transform:rotate(-0.4deg);
+  position:relative;
+}
+.mail-head h1::after {
+  content:''; display:block; height:6px;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 9'%3E%3Cpath d='M2 6 Q55 2 110 6 Q165 10 218 5' stroke='%23b8592a' stroke-width='2.2' fill='none' stroke-linecap='round' opacity='0.55'/%3E%3C/svg%3E") no-repeat left / 100% 100%;
+}
+.mail-head .sub {
+  margin-top:0.7rem;
+  font-family:'Lora',serif; font-style:italic;
+  font-size:0.9rem; color:var(--ink2); opacity:0.6;
+}
+.mail-hint {
+  margin-top:0.4rem;
+  font-family:'Caveat',cursive; font-size:0.95rem;
+  color:var(--rust); opacity:0.7;
+}
+
+/* 信封网格 —— 2 列错落 */
+.mailbox {
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+  gap:2rem 1.8rem;
+  align-items:start;
+}
+
+/* 单个信封 */
+.envelope {
+  position:relative;
+  background:#e8dcc2;
+  padding:1.8rem 1.4rem 1.3rem;
+  cursor:pointer;
+  filter:drop-shadow(2px 4px 10px rgba(28,23,16,0.12));
+  transition:transform 0.3s ease, filter 0.3s ease;
+  min-height:150px;
+  overflow:hidden;
+  /* 信封的纸边：一点点不规则 clip-path */
+  clip-path:polygon(0% 1%, 0.5% 0%, 99.5% 0.3%, 100% 0%, 100% 99.5%, 99% 100%, 1% 100%, 0% 99.2%);
+}
+.envelope:hover {
+  transform:translateY(-3px) rotate(-0.5deg);
+  filter:drop-shadow(3px 8px 16px rgba(28,23,16,0.18));
+}
+
+/* 信封上部的三角翻盖（合拢时的视觉） */
+.envelope::before {
   content:'';
   position:absolute;
-  top:-6px; left:50%; transform:translateX(-50%);
-  width:12px; height:12px; border-radius:50%;
-  background:radial-gradient(circle at 30% 28%, #e88a4a 0%, #b8592a 55%, #6a2e0e 100%);
-  box-shadow:0 2px 4px rgba(28,23,16,0.3);
+  top:0; left:0; right:0;
+  height:52px;
+  background:linear-gradient(to bottom, #dcd0b4 0%, #d2c6a8 100%);
+  clip-path:polygon(0 0, 100% 0, 50% 100%);
+  pointer-events:none;
+  transition:transform 0.45s ease, opacity 0.35s ease;
+  transform-origin:top center;
+  z-index:2;
+}
+
+/* 信封的封口线（V 形虚线，为了强化"这里是盖着的") */
+.envelope::after {
+  content:'';
+  position:absolute;
+  top:0; left:0; right:0;
+  height:52px;
+  background:
+    linear-gradient(135deg, transparent calc(50% - 0.5px), rgba(28,23,16,0.1) 50%, transparent calc(50% + 0.5px)) no-repeat right top / 50% 100%,
+    linear-gradient(45deg, transparent calc(50% - 0.5px), rgba(28,23,16,0.1) 50%, transparent calc(50% + 0.5px)) no-repeat left top / 50% 100%;
+  pointer-events:none;
   z-index:3;
+}
+
+/* 邮戳（圆形、旋转、在右上） */
+.postmark {
+  position:absolute;
+  top:10px; right:14px;
+  width:52px; height:52px;
+  border:1.5px solid rgba(184,89,42,0.6);
+  border-radius:50%;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  font-family:'Courier New',monospace;
+  color:#9a4018; opacity:0.78;
+  transform:rotate(-14deg);
+  font-size:0.58rem; font-weight:600;
+  letter-spacing:0.04em;
+  line-height:1.15;
+  z-index:4;
+  text-align:center;
+  background:transparent;
+}
+.postmark::before {
+  content:''; position:absolute; inset:3px;
+  border:1px dashed rgba(184,89,42,0.35);
+  border-radius:50%;
+}
+.postmark .pm-year { font-size:0.88rem; font-weight:700; }
+
+/* 邮票 —— 左上角 */
+.stamp {
+  position:absolute;
+  top:12px; left:14px;
+  width:36px; height:44px;
+  background:#e8b878;
+  border:2px dashed rgba(28,23,16,0.2);
+  background-image:
+    radial-gradient(circle at 3px 3px, transparent 1.5px, #e8b878 1.6px),
+    radial-gradient(circle at 3px 3px, transparent 1.5px, #e8b878 1.6px);
+  z-index:4;
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.7rem;
+  color:#5a3a14;
+  font-family:'Caveat',cursive;
+  font-weight:700;
+}
+.stamp::after {
+  content:'';
+  position:absolute; inset:3px;
+  border:0.5px solid rgba(90,58,20,0.35);
+}
+
+/* 收件人区 —— 在信封正中靠下（关闭态显示） */
+.env-to {
+  position:absolute;
+  left:1.4rem; right:1.4rem;
+  bottom:1.3rem;
+  font-family:'Caveat',cursive;
+  color:var(--ink2);
+}
+.env-to-label {
+  font-size:0.75rem; color:var(--line); opacity:0.6;
+  display:block; margin-bottom:0.1rem;
+  font-family:'Courier New',monospace; letter-spacing:0.08em;
+  text-transform:uppercase;
+}
+.env-to-name {
+  font-size:1.3rem; font-weight:700; color:var(--ink);
+}
+
+/* 信件内容 —— 默认隐藏，open 时展开 */
+.letter {
+  background:#faf5e8;
+  margin-top:0.8rem;
+  padding:1.2rem 1.2rem 1.1rem;
+  max-height:0;
+  overflow:hidden;
+  opacity:0;
+  transition:max-height 0.45s ease, opacity 0.35s ease 0.1s, padding 0.35s ease;
+  padding-top:0; padding-bottom:0;
+  border-left:2px solid rgba(184,89,42,0.5);
+  font-family:'Caveat',cursive;
+  font-size:1.18rem; font-weight:500;
+  line-height:1.7; color:var(--ink);
+  position:relative;
+  z-index:1;
+}
+
+/* 打开态 */
+.envelope.open {
+  padding-bottom:1rem;
+}
+.envelope.open .letter {
+  max-height:600px;
+  opacity:1;
+  padding:1.2rem 1.2rem 1.1rem;
+}
+.envelope.open::before {
+  /* 翻盖掀起：向上旋转 */
+  transform:rotateX(-175deg);
+  transform-origin:top center;
+  opacity:0.3;
+}
+.envelope.open::after {
+  opacity:0.15;
+}
+
+/* 展开后往下露出的信件要把邮戳/邮票盖住一点，让视觉焦点到文字 */
+.envelope.open .postmark,
+.envelope.open .stamp {
+  opacity:0.45;
+}
+.envelope.open .env-to {
+  position:relative;
+  left:auto; right:auto; bottom:auto;
+  margin-top:2.5rem;
 }
 
 /* 响应式 */
 @media(max-width:640px) {
-  .page-head { padding:4rem 1.5rem 1.5rem; }
-  .wall { padding:1rem 1rem 4rem; gap:2.2rem; }
-  .photo.r-a, .photo.r-b, .photo.r-c, .photo.r-d, .photo.r-e, .photo.r-f {
-    transform:rotate(-1deg) translateX(0) !important;
-  }
-  .photo-area { padding:1.4rem 1.2rem; min-height:90px; }
+  .stage-b, .stage-c { padding:2rem 1rem 4rem; }
+  .logbook { padding:1.5rem 1.5rem 2rem 4rem; }
+  .entry-date { left:-3rem; width:2.6rem; font-size:0.6rem; }
+  .mailbox { grid-template-columns:1fr; }
+  .toolbar { padding:0.8rem 1rem; flex-wrap:wrap; }
+  .toolbar-hint { display:none; }
 }
 
-/* 小徽章提示这是 playground */
 .playground-badge {
   position:fixed; bottom:1rem; right:1rem;
   padding:0.4rem 0.8rem; font-family:'Caveat',cursive;
   font-size:0.9rem; background:rgba(28,23,16,0.85); color:var(--paper);
   border-radius:999px;
-  z-index:50;
+  z-index:50; pointer-events:none;
 }
 </style>
 </head>
-<body>
+<body class="mode-b">
 
-<div class="page-head">
-  <h1>留言</h1>
-  <p class="sub">你好啊，我的朋友</p>
+<div class="toolbar">
+  <span class="toolbar-label">方案切换</span>
+  <button class="lvl-btn active" data-mode="b" onclick="setMode('b')">B · 签名簿</button>
+  <button class="lvl-btn" data-mode="c" onclick="setMode('c')">C · 小信封</button>
+  <span class="toolbar-hint">← 键盘 B / C 也能切</span>
 </div>
 
-<div class="wall">
-
-  <div class="photo r-a pinned">
-    <div class="photo-area tint-cream">
-      <p class="photo-msg">那篇数窗户的文章，我也有这个习惯，但从来没想过要写下来。谢谢你写了。</p>
-    </div>
-    <div class="photo-stamp">
-      <span class="stamp-name">晚风</span>
-      <span class="stamp-date">2026.04.18</span>
-    </div>
+<!-- ══════════════════════════════════════
+     PLAN B · 签名簿
+     ══════════════════════════════════════ -->
+<div class="stage-b">
+  <div class="book-head">
+    <h1>留言</h1>
+    <p class="sub">你好啊，我的朋友</p>
   </div>
 
-  <div class="photo r-b">
-    <div class="photo-area tint-rose">
-      <p class="photo-msg">声音页面好喜欢，你读书的选择很有意思。维特根斯坦那条的理由让我笑了，「不完全理解但想缩小距离」，太真实了。</p>
+  <div class="logbook">
+    <div class="entry" data-ink="blue" data-rot="a">
+      <span class="entry-date">04·18</span>
+      <span class="entry-name">晚风</span>
+      <span class="entry-text">那篇数窗户的文章，我也有这个习惯，但从来没想过要写下来。谢谢你写了。</span>
     </div>
-    <div class="photo-stamp">
-      <span class="stamp-name">匿名</span>
-      <span class="stamp-date">2026.04.12</span>
+    <div class="entry" data-ink="black" data-rot="b">
+      <span class="entry-date">04·12</span>
+      <span class="entry-name">匿名</span>
+      <span class="entry-text">声音页面好喜欢，你读书的选择很有意思。维特根斯坦那条的理由让我笑了，「不完全理解但想缩小距离」，太真实了。</span>
     </div>
+    <div class="entry" data-ink="brown" data-rot="c">
+      <span class="entry-date">03·30</span>
+      <span class="entry-name">L.</span>
+      <span class="entry-text">凌晨三点的厨房那篇，读了好几遍。那个「换齿轮」的比喻很准确。</span>
+    </div>
+    <div class="entry" data-ink="sepia" data-rot="d">
+      <span class="entry-date">03·14</span>
+      <span class="entry-name">路过的人</span>
+      <span class="entry-text">网站很好看，插画和文字放在一起的感觉很对。</span>
+    </div>
+    <div class="entry" data-ink="grey" data-rot="e">
+      <span class="entry-date">03·08</span>
+      <span class="entry-name">便便</span>
+      <span class="entry-text">读到《树犹如此》那篇，去把原书找来读了。中间那棵没补种。</span>
+    </div>
+    <div class="entry" data-ink="blue" data-rot="f">
+      <span class="entry-date">02·28</span>
+      <span class="entry-name">匿名</span>
+      <span class="entry-text">「语言的网眼太大」——这个比喻我要偷走了。</span>
+    </div>
+    <div class="book-tail">—— 这里还有空位，欢迎写上你的</div>
   </div>
-
-  <div class="photo r-c">
-    <div class="photo-area tint-sage">
-      <p class="photo-msg">凌晨三点的厨房那篇，读了好几遍。那个「换齿轮」的比喻很准确。</p>
-    </div>
-    <div class="photo-stamp">
-      <span class="stamp-name">L.</span>
-      <span class="stamp-date">2026.03.30</span>
-    </div>
-  </div>
-
-  <div class="photo r-d">
-    <div class="photo-area tint-sepia">
-      <p class="photo-msg">网站很好看，插画和文字放在一起的感觉很对。</p>
-    </div>
-    <div class="photo-stamp">
-      <span class="stamp-name">路过的人</span>
-      <span class="stamp-date">2026.03.14</span>
-    </div>
-  </div>
-
-  <div class="photo r-e">
-    <div class="photo-area tint-sky">
-      <p class="photo-msg">「语言的网眼太大」——这个比喻我要偷走了。</p>
-    </div>
-    <div class="photo-stamp">
-      <span class="stamp-name">匿名</span>
-      <span class="stamp-date">2026.02.28</span>
-    </div>
-  </div>
-
-  <div class="photo r-f">
-    <div class="photo-area tint-cream">
-      <p class="photo-msg">读到《树犹如此》那篇，去把原书找来读了。中间那棵没补种。</p>
-    </div>
-    <div class="photo-stamp">
-      <span class="stamp-name">便便</span>
-      <span class="stamp-date">2026.03.08</span>
-    </div>
-  </div>
-
 </div>
 
-<div class="playground-badge">playground · 照片墙方案</div>
+<!-- ══════════════════════════════════════
+     PLAN C · 小信封墙
+     ══════════════════════════════════════ -->
+<div class="stage-c">
+  <div class="mail-head">
+    <h1>留言</h1>
+    <p class="sub">你好啊，我的朋友</p>
+    <p class="mail-hint">↓ 点一下信封，打开看里面写了什么</p>
+  </div>
+
+  <div class="mailbox">
+
+    <div class="envelope" onclick="this.classList.toggle('open')">
+      <div class="stamp">✦</div>
+      <div class="postmark">
+        <span class="pm-year">04·18</span>
+        <span>2026</span>
+      </div>
+      <div class="env-to">
+        <span class="env-to-label">From</span>
+        <span class="env-to-name">晚风</span>
+      </div>
+      <div class="letter">
+        那篇数窗户的文章，我也有这个习惯，但从来没想过要写下来。谢谢你写了。
+      </div>
+    </div>
+
+    <div class="envelope" onclick="this.classList.toggle('open')">
+      <div class="stamp">✿</div>
+      <div class="postmark">
+        <span class="pm-year">04·12</span>
+        <span>2026</span>
+      </div>
+      <div class="env-to">
+        <span class="env-to-label">From</span>
+        <span class="env-to-name">匿名</span>
+      </div>
+      <div class="letter">
+        声音页面好喜欢，你读书的选择很有意思。维特根斯坦那条的理由让我笑了，「不完全理解但想缩小距离」，太真实了。
+      </div>
+    </div>
+
+    <div class="envelope" onclick="this.classList.toggle('open')">
+      <div class="stamp">✧</div>
+      <div class="postmark">
+        <span class="pm-year">03·30</span>
+        <span>2026</span>
+      </div>
+      <div class="env-to">
+        <span class="env-to-label">From</span>
+        <span class="env-to-name">L.</span>
+      </div>
+      <div class="letter">
+        凌晨三点的厨房那篇，读了好几遍。那个「换齿轮」的比喻很准确。
+      </div>
+    </div>
+
+    <div class="envelope" onclick="this.classList.toggle('open')">
+      <div class="stamp">❀</div>
+      <div class="postmark">
+        <span class="pm-year">03·14</span>
+        <span>2026</span>
+      </div>
+      <div class="env-to">
+        <span class="env-to-label">From</span>
+        <span class="env-to-name">路过的人</span>
+      </div>
+      <div class="letter">
+        网站很好看，插画和文字放在一起的感觉很对。
+      </div>
+    </div>
+
+    <div class="envelope" onclick="this.classList.toggle('open')">
+      <div class="stamp">♡</div>
+      <div class="postmark">
+        <span class="pm-year">03·08</span>
+        <span>2026</span>
+      </div>
+      <div class="env-to">
+        <span class="env-to-label">From</span>
+        <span class="env-to-name">便便</span>
+      </div>
+      <div class="letter">
+        读到《树犹如此》那篇，去把原书找来读了。中间那棵没补种。
+      </div>
+    </div>
+
+    <div class="envelope" onclick="this.classList.toggle('open')">
+      <div class="stamp">✶</div>
+      <div class="postmark">
+        <span class="pm-year">02·28</span>
+        <span>2026</span>
+      </div>
+      <div class="env-to">
+        <span class="env-to-label">From</span>
+        <span class="env-to-name">匿名</span>
+      </div>
+      <div class="letter">
+        「语言的网眼太大」——这个比喻我要偷走了。
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="playground-badge">playground · B/C 对比</div>
+
+<script>
+function setMode(m) {
+  document.body.className = 'mode-' + m;
+  document.querySelectorAll('.lvl-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === m);
+  });
+}
+document.addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if (k === 'b' || k === 'c') setMode(k);
+});
+</script>
 
 </body>
 </html>
