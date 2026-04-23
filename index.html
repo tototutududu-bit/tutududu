@@ -123,6 +123,30 @@ nav a:hover::after { width:100%; }
 .na5{background:#f0f5ef;border-left:3px solid var(--sage);clip-path:polygon(1% 0%,98% 2%,100% 1%,99% 40%,100% 70%,98% 100%,60% 99%,20% 100%,1% 98%,0% 70%,2% 40%,0% 10%);width:140px;top:21vh;right:22vw;animation:floatE 5.5s ease-in-out infinite;}
 .na6{background:#faf5e8;border-top:3px solid var(--rust);clip-path:polygon(0% 2%,3% 0%,97% 1%,100% 0%,99% 20%,100% 50%,99% 80%,100% 98%,96% 100%,50% 99%,4% 100%,0% 97%,1% 60%,0% 30%);width:132px;top:42vh;right:4vw;animation:floatF 9s ease-in-out infinite;}
 
+/* ── FRAGMENTS：真实碎片（图片/小东西），钉在墙上 ── */
+.frag-photo {
+  position:absolute;
+  background:#ffffff;
+  padding:9px 9px 30px;
+  filter:drop-shadow(2px 5px 12px rgba(28,23,16,0.15));
+  z-index:6;
+  transition:transform 0.4s ease, filter 0.4s ease;
+}
+.frag-photo:hover {
+  filter:drop-shadow(3px 9px 18px rgba(28,23,16,0.22));
+  z-index:15;
+}
+.frag-photo img { display:block; width:100%; height:auto; }
+.frag-photo .frag-cap {
+  position:absolute; bottom:7px; left:0; right:0;
+  text-align:center;
+  font-family:'Caveat',cursive; font-size:1rem; font-weight:600;
+  color:var(--ink);
+}
+/* 每张碎片自己的位置/倾斜 */
+.fp-boss { top:15vh; right:8vw; width:140px; transform:rotate(-4deg); }
+.fp-boss:hover { transform:rotate(-1deg) translateY(-5px); }
+
 /* ── ILLUSTRATION STAGE ── */
 #stage {
   position:absolute;
@@ -282,22 +306,11 @@ footer{padding:1.6rem 4rem 2.8rem;display:flex;justify-content:space-between;ali
     </svg>
   </div>
 
-  <!-- GROUND NOTES -->
-  <div class="note-ground ng1">今天的云，<br>像一只猫。</div>
-  <svg class="tape-g" style="bottom:calc(7.5vh + 66px);left:calc(3vw + 36px);transform:rotate(-20deg)" width="44" height="13" viewBox="0 0 44 13"><rect width="44" height="13" rx="1.5" fill="#f2dc88" opacity="0.5"/><line x1="0" y1="3.5" x2="44" y2="3.5" stroke="#d4ba50" stroke-width="0.5" opacity="0.35"/><line x1="0" y1="9.5" x2="44" y2="9.5" stroke="#d4ba50" stroke-width="0.5" opacity="0.35"/></svg>
-  <div class="note-ground ng2">语言不够用，<br>所以才画画。</div>
-  <div class="note-ground ng3">最近总是很早醒，<br>看着天一点点亮。</div>
-  <div class="note-ground ng4">读了三遍，<br>感觉很美。</div>
-  <div class="note-ground ng5">如果时间是液体，<br>装进瓶子里。</div>
-  <div class="note-ground ng6">不知道从什么时候，<br>开始数窗户了。</div>
-
-  <!-- AIR NOTES -->
-  <div class="note-air na1" data-depth="0.04">今天的云很奇怪，<br>像一只跑步的猫。</div>
-  <div class="note-air na2" data-depth="0.06">如果时间是液体，<br>我想把它装进瓶子。</div>
-  <div class="note-air na3" data-depth="0.03">语言不够用，<br>所以才画画。</div>
-  <div class="note-air na4" data-depth="0.05">最近总是很早醒来，<br>看着天一点点亮。</div>
-  <div class="note-air na5" data-depth="0.07">读了三遍还是不懂，<br>但感觉很美。</div>
-  <div class="note-air na6" data-depth="0.04">不知道从什么时候，<br>开始数亮着的窗户。</div>
+  <!-- ══ FRAGMENTS (真实的碎片，慢慢长) ══ -->
+  <div class="frag-photo fp-boss">
+    <img src="fragments/boss-cat.jpg" alt="">
+    <span class="frag-cap">老大来也</span>
+  </div>
 
   <!-- SOFA STAGE -->
   <div id="stage">
