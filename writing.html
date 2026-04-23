@@ -242,6 +242,26 @@ nav a:hover::after, nav a.active::after { width:100%; }
 .article-body p { margin-bottom:1.6rem; }
 .article-body p:last-child { margin-bottom:0; }
 
+/* sub-heading inside an article */
+.article-body h3 {
+  font-family:'Lora',serif; font-size:1.05rem; font-weight:600;
+  color:var(--ink); margin:2.2rem 0 1rem;
+  letter-spacing:0.01em;
+}
+
+/* book-quote block — indented, muted, serif italic */
+.article-body blockquote {
+  margin:1.4rem 0;
+  padding:0.3rem 0 0.3rem 1.1rem;
+  border-left:2px solid var(--line);
+  color:var(--ink2);
+  font-style:italic;
+  font-size:0.95rem;
+  line-height:1.85;
+}
+.article-body blockquote p { margin-bottom:0.9rem; }
+.article-body blockquote p:last-child { margin-bottom:0; }
+
 /* pull quote — sticky note */
 .pull-quote {
   background:#faf5e8;
