@@ -362,6 +362,12 @@ nav a:hover::after, nav a.active::after { width:100%; }
         <p class="char-counter" id="char-counter">0 / 300</p>
       </div>
 
+      <!-- honeypot: hidden from humans, bots fill it and get filtered -->
+      <div aria-hidden="true" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden">
+        <label for="f-website">网址（请勿填写）</label>
+        <input type="text" id="f-website" name="website" tabindex="-1" autocomplete="off">
+      </div>
+
       <div style="display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap">
         <button type="submit" class="submit-btn">
           留下来
@@ -394,49 +400,29 @@ nav a:hover::after, nav a.active::after { width:100%; }
 
 <script>
 // ══════════════════════════════════════════════
-//  SAMPLE MESSAGES — replace with real DB data later
+//  BACKEND — Google Form + Google Sheet
 // ══════════════════════════════════════════════
-const sampleMessages = [
-  {
-    name: '晚风',
-    date: '2024.11.18 · by Claude',
-    text: '那篇数窗户的文章，我也有这个习惯，但从来没想过要写下来。谢谢你写了。',
-    reply: '原来不止我一个人在数。'
-  },
-  {
-    name: '匿名',
-    date: '2024.11.12 · by Claude',
-    text: '声音页面好喜欢，你读书的选择很有意思。维特根斯坦那条的理由让我笑了，「不完全理解但想缩小距离」，太真实了。',
-    reply: null
-  },
-  {
-    name: 'L.',
-    date: '2024.10.30 · by Claude',
-    text: '凌晨三点的厨房那篇，读了好几遍。那个「换齿轮」的比喻很准确。',
-    reply: '三点钟适合想这些事情。'
-  },
-  {
-    name: '路过的人',
-    date: '2024.10.14 · by Claude',
-    text: '网站很好看，插画和文字放在一起的感觉很对。',
-    reply: null
-  },
-  {
-    name: '匿名',
-    date: '2024.09.28 · by Claude',
-    text: '「语言的网眼太大」——这个比喻我要偷走了。',
-    reply: '拿去用，不用还。'
-  },
-];
+const FORM_POST_URL   = 'https://docs.google.com/forms/d/e/1FAIpQLSfoCl0gUZEA4T48QAjA98LyUsPX1iAS6JuPEk1H86nFSQdusg/formResponse';
+const ENTRY_NAME      = 'entry.348106849';   // 昵称
+const ENTRY_TEXT      = 'entry.647438091';   // 留言
+const SHEET_CSV_URL   = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT7dhVgD-_zTrsp3ITF8onCJkDaJDcx1MauvxxF-AJGMYyJG_A3JWGAx8pOx-OCOz7woAC_kUA4fB1P/pub?output=csv';
 
-// runtime messages added this session (static, no persistence)
-let sessionMessages = [];
+// messages pulled from the Sheet (newest first)
+let liveMessages = [];
+// messages just posted in this session, shown optimistically before Sheet catches up
+let pendingMessages = [];
 
 // ══════════════════════════════════════════════
-//  RENDER
+//  XSS-safe render
 // ══════════════════════════════════════════════
+function escHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 function renderMessages() {
-  const all = [...sessionMessages, ...sampleMessages];
+  const all = [...pendingMessages, ...liveMessages];
   const list = document.getElementById('msg-list');
   document.getElementById('msg-count').textContent = `${all.length} 条`;
 
@@ -448,19 +434,72 @@ function renderMessages() {
     <div class="msg-card">
       <div class="msg-top">
         <span class="msg-name">${escHtml(m.name)}</span>
-        <span class="msg-date">${m.date}</span>
+        <span class="msg-date">${escHtml(m.date)}</span>
       </div>
       <p class="msg-text">${escHtml(m.text)}</p>
-      ${m.reply ? `
-        <div class="msg-reply">
-          <span class="msg-reply-label">tutududu 回</span>
-          <p class="msg-reply-text">${escHtml(m.reply)}</p>
-        </div>` : ''}
     </div>`).join('');
 }
 
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+// ══════════════════════════════════════════════
+//  CSV parsing (handles quoted fields w/ commas + newlines)
+// ══════════════════════════════════════════════
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = '', inQuote = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i], n = text[i+1];
+    if (inQuote) {
+      if (c === '"' && n === '"') { field += '"'; i++; }
+      else if (c === '"') inQuote = false;
+      else field += c;
+    } else {
+      if (c === '"') inQuote = true;
+      else if (c === ',') { row.push(field); field = ''; }
+      else if (c === '\r') { /* skip */ }
+      else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+      else field += c;
+    }
+  }
+  if (field !== '' || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+function fmtDate(ts) {
+  if (!ts) return '';
+  const m = String(ts).match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+  if (m) return `${m[1]}.${m[2].padStart(2,'0')}.${m[3].padStart(2,'0')}`;
+  return String(ts).slice(0,10);
+}
+
+// ══════════════════════════════════════════════
+//  LOAD FROM SHEET
+// ══════════════════════════════════════════════
+async function loadFromSheet() {
+  try {
+    const r = await fetch(SHEET_CSV_URL + '&_=' + Date.now(), { cache:'no-store' });
+    if (!r.ok) throw new Error('sheet fetch failed: ' + r.status);
+    const text = await r.text();
+    const rows = parseCSV(text);
+    if (rows.length < 2) { liveMessages = []; renderMessages(); return; }
+    // header: 時間戳記, 昵称, 留言
+    const msgs = rows.slice(1)
+      .filter(r => r && (r[2] || '').trim())
+      .map(r => ({
+        date: fmtDate(r[0]),
+        name: (r[1] || '').trim() || '匿名',
+        text: (r[2] || '').trim(),
+      }));
+    // newest first (Form appends at bottom)
+    msgs.reverse();
+    liveMessages = msgs;
+    // dedupe pending: if the same text now shows up in live, drop from pending
+    pendingMessages = pendingMessages.filter(p =>
+      !liveMessages.some(m => m.text === p.text && m.name === p.name));
+    renderMessages();
+  } catch (e) {
+    console.warn('[guestbook] load failed:', e);
+    renderMessages(); // still show pending / empty state
+  }
 }
 
 // ══════════════════════════════════════════════
@@ -483,19 +522,41 @@ function updateCount() {
   counter.classList.toggle('near-limit', len > 260);
 }
 
+function showSuccess() {
+  const success = document.getElementById('submit-success');
+  success.classList.add('show');
+  setTimeout(() => success.classList.remove('show'), 3500);
+}
+
+// ══════════════════════════════════════════════
+//  SUBMIT
+// ══════════════════════════════════════════════
 function submitMsg(e) {
   e.preventDefault();
+
+  // Honeypot check — real users leave this empty
+  const honey = document.getElementById('f-website').value;
+  if (honey) {
+    // Silent success for bots (they don't know they were caught)
+    showSuccess();
+    return;
+  }
+
   const isAnon = document.getElementById('f-anon').checked;
   const name = isAnon ? '匿名' : (document.getElementById('f-name').value.trim() || '匿名');
   const text = document.getElementById('f-msg').value.trim();
   if (!text) { document.getElementById('f-msg').focus(); return; }
 
-  // format date
+  // Send to Google Form (no-cors → fire-and-forget, can't read response)
+  const fd = new FormData();
+  fd.append(ENTRY_NAME, name);
+  fd.append(ENTRY_TEXT, text);
+  fetch(FORM_POST_URL, { method:'POST', mode:'no-cors', body: fd }).catch(() => {});
+
+  // Optimistically show it now — Sheet will catch up in ~10-60s
   const now = new Date();
   const date = `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
-
-  // prepend to session messages
-  sessionMessages.unshift({ name, date, text, reply:null });
+  pendingMessages.unshift({ name, date, text });
   renderMessages();
 
   // reset form
@@ -504,15 +565,14 @@ function submitMsg(e) {
   document.getElementById('f-anon').checked = false;
   toggleAnon();
   updateCount();
+  showSuccess();
 
-  // show success
-  const success = document.getElementById('submit-success');
-  success.classList.add('show');
-  setTimeout(() => success.classList.remove('show'), 3500);
+  // try to pick up the real row from Sheet after a delay (Google usually updates in 30-60s)
+  setTimeout(loadFromSheet, 45000);
 }
 
 // ── INIT
-renderMessages();
+loadFromSheet();
 </script>
 </body>
 </html>
