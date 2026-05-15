@@ -39,8 +39,10 @@
 - `<p>` 段落
 - `<h3>` 小标题（Lora serif）
 - `<blockquote>` 长引用块（淡色左边线 + 斜体，适合引用书里的话）
-- `<div class="pull-quote">...</div>` 便签式金句（Caveat 手写，放在正文中间一两条）
+- `<div class="pull-quote">...</div>` 便签式金句（Caveat 手写）——**默认不要用**，除非用户明确要求。用户偏好正文统一段落，不要自作主张挑句子做金句
 - `__ILLUS:svgKey:caption:note:rotClass__` 内联插画占位符，渲染时会被 `writing.html` 的 `openArticle()` 替换为 SVG
+
+> 发文章默认：纯 `<p>` 段落，原文一字不改。`h3`/`blockquote` 仅当原文本身有小标题或整段引用时才用；`pull-quote` 一律不主动用。
 
 ---
 
